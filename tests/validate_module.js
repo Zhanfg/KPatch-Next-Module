@@ -55,8 +55,10 @@ function testBinaries() {
             continue;
         }
 
-        // Verify ELF header for arm64 binaries (kpatch, kptools, kpimg)
-        if (bin.name !== 'magiskboot') {
+        // Verify ELF header for arm64 binaries (kpatch, kptools only)
+        // kpimg is a raw kernel image, not ELF
+        // magiskboot is extracted from .so
+        if (bin.name === 'kpatch' || bin.name === 'kptools') {
             const buf = Buffer.alloc(20);
             const fd = fs.openSync(filePath, 'r');
             fs.readSync(fd, buf, 0, 20, 0);
