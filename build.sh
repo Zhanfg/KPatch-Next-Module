@@ -67,7 +67,7 @@ fi
 # Fetch KernelPatch binaries → module/bin/kernelpatch/
 mkdir -p module/bin/kernelpatch
 if [[ ! -f "module/bin/kernelpatch/kpatch" || ! -f "module/bin/kernelpatch/kpimg" || ! -f "module/bin/kernelpatch/kptools" ]]; then
-    download_assets "Zhanfg/KernelPatch" "$VERSION_KERNELPATCH" "module/bin/kernelpatch" "kpuser.zip" "kpimg-linux" "kptools-android"
+    download_assets "bmax121/KernelPatch" "$VERSION_KERNELPATCH" "module/bin/kernelpatch" "kpuser.zip" "kpimg-linux" "kptools-android"
 
     # kpuser.zip contains the user-space binary
     cd module/bin/kernelpatch
