@@ -38,7 +38,8 @@ echo "[$(date)] kpatch hello OK" >> "$LOG"
 # ============================================================
 load_kpm_module() {
     local kpm_file="$1"
-    local mod_basename=$(basename "$kpm_file" | sed 's/\.\(kpm\|ko\|o\)$//')
+    local mod_basename
+    mod_basename=$(basename "$kpm_file" | sed 's/\.\(kpm\|ko\|o\)$//')
     local prop_file="$KPM_EVENT_DIR/${mod_basename}.args"
     local args=""
 
