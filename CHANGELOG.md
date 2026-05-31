@@ -2,6 +2,13 @@
 
 ## Changelog
 
+### v0.1.2
+
+**Rebuild with freshly compiled KernelPatch 0.13.3 binaries**
+- All features from v0.1.1 included
+- Binaries compiled from Zhanfg/KernelPatch-Public CI (not manual upload)
+- Full feature set: crash protection, hiding, KPM events, format extension
+
 ### v0.1.1
 
 **Embedded KPM Crash Protection (KernelPatch fork):**
