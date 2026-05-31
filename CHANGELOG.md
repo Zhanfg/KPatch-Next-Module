@@ -2,6 +2,16 @@
 
 ## Changelog
 
+### v0.0.4
+
+**Root/Module Detection Hiding (KernelPatch fork):**
+- Configurable filesystem hiding: runtime add/remove umount paths via supercall
+- Default hidden paths: /data/adb/modules, /data/adb/kp-next, /data/adb/kp, etc.
+- MNT_DETACH lazy unmount for safe unmounting
+- UID-aware: checks app profile umount_modules flag
+- Supercalls: UMOUNT_ADD (0x1160), UMOUNT_REMOVE (0x1161), UMOUNT_ENABLE (0x1162), UMOUNT_LIST (0x1163)
+- KPM modules can add paths via compact_find_symbol("umount_add_path")
+
 ### v0.0.3
 
 **KPM Event System & Format Extension (KernelPatch fork):**
