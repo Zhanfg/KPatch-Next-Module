@@ -117,57 +117,6 @@ function setRehookMode(isEnable) {
     })
 }
 
-async function initBinarySource() {
-    const sourceItem = document.getElementById('binary-source');
-    const sourceDetail = document.getElementById('current-source');
-    const sourceDialog = document.getElementById('source-dialog');
-
-    const result = await exec(`cat "${persistDir}/source"`, { env: { PATH: `${modDir}/bin` } });
-    const currentSource = (result.errno === 0 && result.stdout.trim()) ? result.stdout.trim() : 'kpatch-next';
-
-    sourceDetail.textContent = currentSource === 'kernelpatch' ? 'KernelPatch' : 'KPatch-Next';
-
-    sourceItem.onclick = () => {
-        const radios = sourceDialog.querySelectorAll('md-radio');
-        radios.forEach(r => r.checked = r.value === currentSource);
-
-        sourceDialog.querySelector('.cancel').onclick = () => sourceDialog.close();
-        sourceDialog.querySelector('.confirm').onclick = async () => {
-            const selected = sourceDialog.querySelector('md-radio[checked]')?.value
-                || sourceDialog.querySelector('md-radio:checked')?.value;
-            if (!selected || selected === currentSource) {
-                sourceDialog.close();
-                return;
-            }
-
-            const switchResult = await exec(`
-                cp -f "${modDir}/bin/${selected}/kpatch" "${modDir}/bin/kpatch"
-                cp -f "${modDir}/bin/${selected}/kptools" "${modDir}/bin/kptools"
-                cp -f "${modDir}/bin/${selected}/kpimg" "${modDir}/bin/kpimg"
-                echo "${selected}" > "${persistDir}/source"
-            `);
-
-            if (switchResult.errno === 0) {
-                sourceDetail.textContent = selected === 'kernelpatch' ? 'KernelPatch' : 'KPatch-Next';
-                toast(getString('msg_source_switched'));
-            } else {
-                toast(getString('msg_error', switchResult.stderr));
-            }
-            sourceDialog.close();
-        };
-
-        // Radio click handling
-        radios.forEach(radio => {
-            radio.onclick = () => {
-                radios.forEach(r => r.checked = false);
-                radio.checked = true;
-            };
-        });
-
-        sourceDialog.show();
-    };
-}
-
 function initRepoSettings() {
     const repoItem = document.getElementById('repository');
     const repoUrlDetail = document.getElementById('current-repo-url');
@@ -262,7 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     logModule.initLogPage();
     backupModule.initBackupPage();
     repoModule.initRepoPage();
-    initBinarySource();
     initRepoSettings();
 
     // splash screen

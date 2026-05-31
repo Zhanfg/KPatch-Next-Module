@@ -47,49 +47,18 @@ download_assets() {
     done
 }
 
-VERSION_KPATCH_NEXT=$(get_ver "kpatch-next")
-VERSION_KPATCH_NEXT="${VERSION_KPATCH_NEXT:-latest}"
 VERSION_KERNELPATCH=$(get_ver "kernelpatch")
 VERSION_KERNELPATCH="${VERSION_KERNELPATCH:-latest}"
 VERSION_MAGISKBOOT=$(get_ver "magiskboot")
 VERSION_MAGISKBOOT="${VERSION_MAGISKBOOT:-latest}"
 
-# Fetch KPatch-Next binaries → module/bin/kpatch-next/
-mkdir -p module/bin/kpatch-next
-if [[ ! -f "module/bin/kpatch-next/kpatch" || ! -f "module/bin/kpatch-next/kpimg" || ! -f "module/bin/kpatch-next/kptools" ]]; then
-    download_assets "KernelSU-Next/KPatch-Next" "$VERSION_KPATCH_NEXT" "module/bin/kpatch-next" "kpatch-android" "kpimg-linux" "kptools-android"
+# Fetch KernelPatch binaries from public fork
+if [[ ! -f "module/bin/kpatch" || ! -f "module/bin/kpimg" || ! -f "module/bin/kptools" ]]; then
+    download_assets "Zhanfg/KernelPatch-Public" "$VERSION_KERNELPATCH" "module/bin" "kpimg-linux" "kptools-android"
 
-    mv module/bin/kpatch-next/kpatch-android module/bin/kpatch-next/kpatch
-    mv module/bin/kpatch-next/kptools-android module/bin/kpatch-next/kptools
-    mv module/bin/kpatch-next/kpimg-linux module/bin/kpatch-next/kpimg
+    mv module/bin/kpimg-linux module/bin/kpimg
+    mv module/bin/kptools-android module/bin/kptools
 fi
-
-# Fetch KernelPatch binaries → module/bin/kernelpatch/
-mkdir -p module/bin/kernelpatch
-if [[ ! -f "module/bin/kernelpatch/kpatch" || ! -f "module/bin/kernelpatch/kpimg" || ! -f "module/bin/kernelpatch/kptools" ]]; then
-    download_assets "Zhanfg/KernelPatch-Public" "$VERSION_KERNELPATCH" "module/bin/kernelpatch" "kpuser.zip" "kpimg-linux" "kptools-android"
-
-    # kpuser.zip contains the user-space binary
-    cd module/bin/kernelpatch
-    unzip -o kpuser.zip -d kpuser_tmp 2>/dev/null
-    # Find the android binary (arm64)
-    KPUSER=$(find kpuser_tmp -name "kpuser" -o -name "kpuser_*android*" -o -name "kpuser_*aarch64*" | head -n 1)
-    if [[ -z "$KPUSER" ]]; then
-        # fallback: take any binary
-        KPUSER=$(find kpuser_tmp -type f ! -name "*.txt" ! -name "*.md" | head -n 1)
-    fi
-    [[ -n "$KPUSER" ]] && cp "$KPUSER" kpatch
-    rm -rf kpuser_tmp kpuser.zip
-    mv kptools-android kptools
-    mv kpimg-linux kpimg
-    cd ../../..
-fi
-
-# Default active binaries: copy KPatch-Next → module/bin/
-# (customize.sh switches source at install time)
-cp module/bin/kpatch-next/kpatch module/bin/kpatch 2>/dev/null
-cp module/bin/kpatch-next/kptools module/bin/kptools 2>/dev/null
-cp module/bin/kpatch-next/kpimg module/bin/kpimg 2>/dev/null
 
 # Fetch magiskboot
 if [[ ! -f "module/bin/magiskboot" ]]; then

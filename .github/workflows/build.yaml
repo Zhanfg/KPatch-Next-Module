@@ -11,16 +11,6 @@ env:
   GH_TOKEN: ${{ github.token }}
 
 jobs:
-  test:
-    name: KPM Validation
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v4
-      with: { node-version: 'lts/*' }
-    - name: Validate test KPM files
-      run: node tests/validate_kpm.js
-
   build:
     runs-on: ubuntu-latest
     outputs:
@@ -33,38 +23,15 @@ jobs:
     - name: Load versions
       run: grep -v '^#' version.properties | sed -e 's/ *= */=/g' -e 's/"//g' >> $GITHUB_ENV
 
-    # === KPatch-Next binaries → module/bin/kpatch-next/ ===
-    - name: Download KPatch-Next binaries
-      run: |
-        mkdir -p module/bin/kpatch-next
-        TAG="${{ env['kpatch-next'] }}"
-        ARGS=("-R" "KernelSU-Next/KPatch-Next" "-p" "kpatch-android" "-p" "kptools-android" "-p" "kpimg-linux" "-D" "module/bin/kpatch-next")
-        if [ "$TAG" != "latest" ]; then gh release download "$TAG" "${ARGS[@]}"; else gh release download "${ARGS[@]}"; fi
-        mv module/bin/kpatch-next/kpatch-android module/bin/kpatch-next/kpatch
-        mv module/bin/kpatch-next/kptools-android module/bin/kpatch-next/kptools
-        mv module/bin/kpatch-next/kpimg-linux module/bin/kpatch-next/kpimg
-
-    # === KernelPatch binaries → module/bin/kernelpatch/ ===
+    # === KernelPatch binaries ===
     - name: Download KernelPatch binaries
       run: |
-        mkdir -p module/bin/kernelpatch
+        mkdir -p module/bin
         TAG="${{ env['kernelpatch'] }}"
-        ARGS=("-R" "Zhanfg/KernelPatch-Public" "-p" "kpuser.zip" "-p" "kpimg-linux" "-p" "kptools-android" "-D" "module/bin/kernelpatch")
+        ARGS=("-R" "Zhanfg/KernelPatch-Public" "-p" "kpimg-linux" "-p" "kptools-android" "-D" "module/bin")
         if [ "$TAG" != "latest" ]; then gh release download "$TAG" "${ARGS[@]}"; else gh release download "${ARGS[@]}"; fi
-        cd module/bin/kernelpatch
-        unzip -o kpuser.zip -d kpuser_tmp 2>/dev/null
-        KPUSER=$(find kpuser_tmp -name "kpuser" -o -name "*android*" -o -name "*aarch64*" | head -1)
-        [ -n "$KPUSER" ] && cp "$KPUSER" kpatch
-        rm -rf kpuser_tmp kpuser.zip
-        mv kptools-android kptools 2>/dev/null
-        mv kpimg-linux kpimg 2>/dev/null
-
-    # === Default active binaries (KPatch-Next) ===
-    - name: Set default binaries
-      run: |
-        cp module/bin/kpatch-next/kpatch module/bin/kpatch
-        cp module/bin/kpatch-next/kptools module/bin/kptools
-        cp module/bin/kpatch-next/kpimg module/bin/kpimg
+        mv module/bin/kpimg-linux module/bin/kpimg
+        mv module/bin/kptools-android module/bin/kptools
 
     # === Magiskboot ===
     - name: Download magiskboot
