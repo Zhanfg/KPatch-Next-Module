@@ -11,8 +11,119 @@ env:
   GH_TOKEN: ${{ github.token }}
 
 jobs:
-  build:
+  # ═══ Pre-build tests (run on source code, no downloads needed) ═══
+  lint:
+    name: Lint & Source Checks
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: ShellCheck
+      run: |
+        sudo apt-get install -y shellcheck
+        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319 \
+          module/service.sh module/customize.sh module/post-fs-data.sh \
+          module/action.sh module/status.sh module/uninstall.sh \
+          module/install_kpm.sh module/compile_kpm.sh
+        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319 \
+          module/patch/boot_patch.sh module/patch/boot_extract.sh module/patch/boot_unpatch.sh
+        shellcheck -s sh -S error module/patch/util_functions.sh || true
+
+    - name: Check shell script syntax
+      run: |
+        FAIL=0
+        for f in module/*.sh module/patch/*.sh; do
+          bash -n "$f" || FAIL=1
+        done
+        exit $FAIL
+
+  config-check:
+    name: Config Consistency
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: module.prop vs update.json version match
+      run: |
+        PROP_VER=$(grep '^version=' module/module.prop | cut -d= -f2)
+        JSON_VER=$(jq -r .version update.json)
+        if [ "$PROP_VER" != "$JSON_VER" ]; then
+          echo "::error::Version mismatch: module.prop=$PROP_VER, update.json=$JSON_VER"
+          exit 1
+        fi
+        PROP_CODE=$(grep '^versionCode=' module/module.prop | cut -d= -f2)
+        JSON_CODE=$(jq -r .versionCode update.json)
+        if [ "$PROP_CODE" != "$JSON_CODE" ]; then
+          echo "::error::VersionCode mismatch: module.prop=$PROP_CODE, update.json=$JSON_CODE"
+          exit 1
+        fi
+        echo "✓ Versions consistent: $PROP_VER ($PROP_CODE)"
+
+    - name: version.properties has required keys
+      run: |
+        for key in kernelpatch magiskboot; do
+          if ! grep -q "^$key=" version.properties; then
+            echo "::error::Missing key '$key' in version.properties"
+            exit 1
+          fi
+        done
+        echo "✓ version.properties valid"
+
+    - name: All required scripts exist
+      run: |
+        FAIL=0
+        for f in module/customize.sh module/service.sh module/post-fs-data.sh \
+                 module/action.sh module/status.sh module/uninstall.sh \
+                 module/install_kpm.sh module/compile_kpm.sh \
+                 module/patch/boot_patch.sh module/patch/boot_extract.sh \
+                 module/patch/boot_unpatch.sh module/patch/util_functions.sh \
+                 module/module.prop; do
+          if [ ! -f "$f" ]; then
+            echo "::error::Missing required file: $f"
+            FAIL=1
+          fi
+        done
+        exit $FAIL
+
+  locale-check:
+    name: Locale Completeness
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Check all locales have keys from en.xml
+      run: |
+        extract_keys() { grep -oP 'name="\K[^"]+' "$1" | sort; }
+        BASE_KEYS=$(extract_keys webui/public/locales/strings/en.xml)
+        BASE_COUNT=$(echo "$BASE_KEYS" | wc -l)
+        echo "en.xml has $BASE_COUNT keys"
+        FAIL=0
+        for f in webui/public/locales/strings/*.xml; do
+          [ "$(basename "$f")" = "en.xml" ] && continue
+          LANG_COUNT=$(extract_keys "$f" | wc -l)
+          MISSING=$(comm -23 <(echo "$BASE_KEYS") <(extract_keys "$f") | wc -l)
+          if [ "$MISSING" -gt 0 ]; then
+            echo "::warning file=$f::$MISSING missing keys ($LANG_COUNT/$BASE_COUNT)"
+          else
+            echo "✓ $(basename "$f"): complete ($LANG_COUNT keys)"
+          fi
+        done
+
+  kpm-validation:
+    name: KPM Test Files
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-node@v4
+      with: { node-version: 'lts/*' }
+    - name: Validate KPM test files
+      run: node tests/validate_kpm.js
+
+  # ═══ Full build + release ═══
+  build:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    needs: [lint, config-check, locale-check, kpm-validation]
     outputs:
       version: ${{ steps.check_tag.outputs.version }}
       check_tag: ${{ steps.check_tag.outputs.need_release }}
@@ -58,8 +169,8 @@ jobs:
     - name: Build WebUI
       run: cd webui && pnpm install --frozen-lockfile && pnpm build
 
-    # === Validate module package completeness ===
-    - name: Validate module package
+    # === Comprehensive module validation ===
+    - name: Validate module package (comprehensive)
       run: node tests/validate_module.js
 
     - uses: actions/upload-artifact@v6
