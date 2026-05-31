@@ -2,6 +2,20 @@
 
 ## Changelog
 
+### v0.0.9
+
+**Kernel Version Compatibility Fix (KernelPatch fork):**
+- SELinux context hiding: replaced security_getprocattr hook (changed at 4.11)
+  with proc_pid_attr_read hook (stable 3.18 - 6.12+)
+- Post-processing approach: reads output buffer, replaces root context strings
+- All hooks now kernel-version-agnostic
+
+**Compatibility matrix (3.18 - 6.12+):**
+- sel_read_enforce: stable ✅
+- proc_pid_attr_read: stable ✅
+- ksys_umount: 4.17+ (do_umount fallback for older)
+- cred_offset/task_struct_offset: runtime detected ✅
+
 ### v0.0.8
 
 **KPM User Experience Parity with APM:**
