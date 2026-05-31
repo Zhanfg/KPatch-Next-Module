@@ -2,6 +2,22 @@
 
 ## Changelog
 
+### v0.2.2
+
+**Multi-manager compatibility:**
+- Auto-detect Magisk / KernelSU / ReSukiSU / APatch
+- detect_env.sh: shared environment detection script
+- action.sh: WebUI launch adapts to installed manager
+  - KSUWebUIStandalone (universal)
+  - KernelSU native WebUI
+  - APatch native WebUI
+  - Fallback: ADB shell instructions + download link
+- customize.sh: install instructions adapt per manager
+- service.sh: logs root manager, more robust error handling
+- status.sh: shows root manager in module description
+- Removed APatch conflict check (now supported)
+- Magisk: works with KSUWebUIStandalone for WebUI
+
 ### v0.2.1
 
 **Fix missing kpatch binary:**

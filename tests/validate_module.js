@@ -108,6 +108,7 @@ const REQUIRED_SCRIPTS = [
     'action.sh',
     'status.sh',
     'uninstall.sh',
+    'detect_env.sh',
     'patch/boot_patch.sh',
     'patch/boot_extract.sh',
     'patch/boot_unpatch.sh',

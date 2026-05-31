@@ -17,54 +17,55 @@ get_prop() {
 # Rotate log on boot
 mkdir -p "$KPNDIR" "$KPM_DIR/failed" "$KPM_EVENT_DIR"
 echo "=== $(date) service.sh started ===" > "$LOG"
+echo "[$(date)] MODDIR=$MODDIR" >> "$LOG"
+echo "[$(date)] PATH=$PATH" >> "$LOG"
+
+# Detect root manager
+ROOT_MGR="unknown"
+if [ -f "$KPNDIR/root_manager" ]; then
+    ROOT_MGR="$(cat $KPNDIR/root_manager)"
+fi
+echo "[$(date)] root_manager=$ROOT_MGR" >> "$LOG"
+
+# Check if kpatch binary exists and is executable
+if [ ! -x "$MODDIR/bin/kpatch" ]; then
+    echo "[$(date)] ERROR: kpatch binary not found or not executable" >> "$LOG"
+    touch "$MODDIR/unresolved"
+    exit 0
+fi
 
 # Retry kpatch hello
 retries=0
-while [ -z "$(kpatch hello)" ] && [ $retries -lt 3 ]; do
+while [ -z "$(kpatch hello 2>/dev/null)" ] && [ $retries -lt 3 ]; do
     echo "[$(date)] kpatch hello attempt $((retries + 1)) failed, retrying..." >> "$LOG"
     sleep 2
     retries=$((retries + 1))
 done
-if [ -z "$(kpatch hello)" ]; then
+if [ -z "$(kpatch hello 2>/dev/null)" ]; then
     echo "[$(date)] kpatch hello failed after $retries retries" >> "$LOG"
+    echo "[$(date)] Kernel may not be patched yet. Open WebUI and click Start." >> "$LOG"
     touch "$MODDIR/unresolved"
     exit 0
 fi
 echo "[$(date)] kpatch hello OK" >> "$LOG"
 
-# ============================================================
-# Load KPM modules (.kpm, .ko, .o)
-# For each module, check module.prop for event/args/autoLoad
-# ============================================================
-load_kpm_module() {
-    local kpm_file="$1"
-    local mod_basename
-    mod_basename=$(basename "$kpm_file" | sed 's/\.\(kpm\|ko\|o\)$//')
-    local prop_file="$KPM_EVENT_DIR/${mod_basename}.args"
-    local args=""
-
-    # Read args from saved config
+# Safe KPM load
+for kpm in "$KPM_DIR"/*.kpm "$KPM_DIR"/*.ko "$KPM_DIR"/*.o; do
+    [ -s "$kpm" ] || continue
+    mod_basename=$(basename "$kpm" | sed 's/\.\(kpm\|ko\|o\)$//')
+    args=""
     if [ -f "$KPM_EVENT_DIR/${mod_basename}.args" ]; then
         args="$(cat "$KPM_EVENT_DIR/${mod_basename}.args")"
     fi
-
-    if ! kpatch kpm load "$kpm_file" $args; then
-        echo "[$(date)] Failed to load: $(basename "$kpm_file"), moving to failed/" >> "$LOG"
-        mv "$kpm_file" "$KPM_DIR/failed/$(basename "$kpm_file")"
+    if ! kpatch kpm load "$kpm" $args; then
+        echo "[$(date)] Failed to load: $(basename "$kpm"), moving to failed/" >> "$LOG"
+        mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
     else
-        echo "[$(date)] Loaded: $(basename "$kpm_file") args=[$args]" >> "$LOG"
+        echo "[$(date)] Loaded: $(basename "$kpm") args=[$args]" >> "$LOG"
     fi
-}
-
-# Load all KPM files in kpm directory
-for kpm in "$KPM_DIR"/*.kpm "$KPM_DIR"/*.ko "$KPM_DIR"/*.o; do
-    [ -s "$kpm" ] || continue
-    load_kpm_module "$kpm"
 done
 
-# ============================================================
-# Rehook configuration
-# ============================================================
+# Rehook
 if [ -n "$REHOOK" ]; then
     if [ "$REHOOK" = "enable" ] || [ "$REHOOK" = "disable" ]; then
         kpatch rehook $REHOOK
@@ -74,36 +75,27 @@ if [ -n "$REHOOK" ]; then
     fi
 fi
 
-# ============================================================
-# Dispatch events to loaded KPM modules
-# ============================================================
+# Dispatch events
 dispatch_event() {
-    local event_name="$1"
-    echo "[$(date)] Dispatching event: $event_name" >> "$LOG"
-    kpatch event "$event_name" "" "" 2>/dev/null
+    echo "[$(date)] Dispatching event: $1" >> "$LOG"
+    kpatch event "$1" "" "" 2>/dev/null
 }
 
-# Dispatch POST_FS_DATA event
 dispatch_event "POST_FS_DATA"
 
-# ============================================================
 # Wait for boot completion
-# ============================================================
 until [ "$(getprop sys.boot_completed)" = "1" ]; do
     sleep 1
 done
 
-# Dispatch BOOT_COMPLETED event
 dispatch_event "BOOT_COMPLETED"
 
-# ============================================================
-# Apply package exclusion config
-# ============================================================
+# Apply exclusion config
 if [ -f "$CONFIG" ]; then
     tail -n +2 "$CONFIG" | while IFS=, read -r pkg exclude allow uid; do
         if [ "$exclude" = "1" ]; then
-            UID=$(grep "^$pkg $uid" /data/system/packages.list | cut -d' ' -f2)
-            [ -z "$UID" ] && UID=$(grep "^$pkg " /data/system/packages.list | cut -d' ' -f2)
+            UID=$(grep "^$pkg $uid" /data/system/packages.list 2>/dev/null | cut -d' ' -f2)
+            [ -z "$UID" ] && UID=$(grep "^$pkg " /data/system/packages.list 2>/dev/null | cut -d' ' -f2)
             [ -n "$UID" ] && kpatch exclude_set "$UID" 1
         fi
     done

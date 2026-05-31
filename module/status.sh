@@ -32,23 +32,35 @@ if [ ! -d "$MODDIR" ]; then
     exit 0
 fi
 
-active="Status: active 😊"
-inactive="Status: inactive 😕"
-info="info: kernel not patched yet ❌"
-string="$inactive | $info"
+# Detect root manager
+ROOT_MGR="unknown"
+if [ -f "$KPNDIR/root_manager" ]; then
+    ROOT_MGR="$(cat $KPNDIR/root_manager)"
+elif [ -n "$APATCH" ]; then
+    ROOT_MGR="apatch"
+elif [ -n "$KSU" ]; then
+    ROOT_MGR="ksu"
+elif [ -n "$MAGISK_VER" ]; then
+    ROOT_MGR="magisk"
+fi
+
+active="Status: active"
+inactive="Status: inactive"
+info="info: kernel not patched yet"
+string="$inactive | $info | $ROOT_MGR"
 
 until [ "$(getprop sys.boot_completed)" = "1" ]; do
     sleep 1
 done
 
-if [ -n "$(kpatch hello)" ]; then
+if kpatch hello >/dev/null 2>&1; then
     KPM_COUNT="$(kpatch kpm num 2>/dev/null || echo 0)"
     [ -z "$KPM_COUNT" ] && KPM_COUNT=0
 
     REHOOK_MODE="$(kpatch rehook_status 2>/dev/null | awk '{print $NF}')"
     [ -z "$REHOOK_MODE" ] && REHOOK_MODE="enabled"
 
-    string="$active | kpmodule: $KPM_COUNT 💉 | rehook: $REHOOK_MODE 🪝"
+    string="$active | kpmodule: $KPM_COUNT | rehook: $REHOOK_MODE | $ROOT_MGR"
 fi
 
 restore_prop_if_needed
