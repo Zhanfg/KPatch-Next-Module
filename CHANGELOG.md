@@ -2,6 +2,15 @@
 
 ## Changelog
 
+### v0.1.0
+
+**KPM Crash Protection System (KernelPatch fork):**
+- Boot counter: auto safe mode after 3 failed boots
+- Pre-load ELF validation (magic, class, arch, type)
+- Faulty KPM blacklist (auto + explicit via supercall)
+- Supercalls: SAFETY_BL_CLEAR (0x1181), SAFETY_BL_ADD (0x1182)
+- All state persisted via /data/adb/kp-next/ files
+
 ### v0.0.9
 
 **Kernel Version Compatibility Fix (KernelPatch fork):**
