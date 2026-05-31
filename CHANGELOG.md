@@ -2,6 +2,19 @@
 
 ## Changelog
 
+### v0.1.4
+
+**CI Fix — dual binary source:**
+- Rebuild CI: now downloads BOTH KPatch-Next and KernelPatch binaries
+- KPatch-Next → module/bin/kpatch-next/
+- KernelPatch-Public → module/bin/kernelpatch/
+- Default active: KPatch-Next
+- Fix tag check regex in release condition
+
+**Usage reminder:**
+After flashing, open WebUI → click "Not installed" → "Start" to patch kernel.
+Reboot → all features work.
+
 ### v0.1.3
 
 **WebUI Fix:**
