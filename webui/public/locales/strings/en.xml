@@ -19,6 +19,7 @@
     <string name="title_rehook_syscall">Rehook Syscall</string>
     <string name="title_logs">Logs</string>
     <string name="title_backups">Backups</string>
+    <string name="title_repository">Repository</string>
     <string name="title_binary_source">Binary Source</string>
     <string name="title_select_source">Select Binary Source</string>
     <!-- Buttons -->
@@ -99,4 +100,7 @@
     <string name="msg_source_reboot">* Reboot required to apply</string>
     <string name="msg_installing_kpm">Installing KPM package...</string>
     <string name="msg_kpm_installed">KPM package installed successfully</string>
+    <string name="msg_no_modules_in_repo">No modules available in repository</string>
+    <string name="msg_repo_fetch_failed">Failed to fetch repository</string>
+    <string name="msg_no_download_url">No download URL available</string>
 </resources>

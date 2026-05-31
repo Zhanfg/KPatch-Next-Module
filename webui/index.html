@@ -183,6 +183,13 @@
                                 <div slot="headline" data-i18n="title_backups">Backups</div>
                             </div>
                         </div>
+                        <div class="list-item installed-only" id="repository">
+                            <md-ripple></md-ripple>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm80-80h480v-120H240v120Zm0-200h480v-120H240v120Z"/></svg></md-icon>
+                            <div class="list-item-content">
+                                <div slot="headline" data-i18n="title_repository">Repository</div>
+                            </div>
+                        </div>
                         <div class="list-item" id="language">
                             <md-ripple></md-ripple>
                             <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m476-80 182-480h84L924-80h-84l-43-122H603L560-80h-84ZM160-200l-56-56 202-202q-35-35-63.5-80T190-640h84q20 39 40 68t48 58q33-33 68.5-92.5T484-720H40v-80h280v-80h80v80h280v80H564q-21 72-63 148t-83 116l96 98-30 82-122-125-202 201Zm468-72h144l-72-204-72 204Z" /></svg></md-icon>
@@ -192,6 +199,18 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Repository -->
+            <div id="repo-page" class="page">
+                <div class="page-content">
+                    <div class="module-list content-padding fab-padding" id="repo-list"></div>
+                    <div class="empty-list" id="repo-empty-msg" data-i18n="msg_no_modules_in_repo">No modules available</div>
+                </div>
+                <div class="fab-container">
+                    <md-fab variant="primary" aria-label="refresh" id="repo-refresh">
+                        <md-icon slot="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></md-icon>
+                    </md-fab>
                 </div>
             </div>
             <!-- Logs -->

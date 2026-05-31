@@ -1,6 +1,7 @@
 import * as patchModule from './page/patch.js';
 import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
+import * as repoModule from './page/kpm_repo.js';
 import { getString } from './language.js';
 
 const backBtn = document.getElementById('back-btn');
@@ -90,6 +91,11 @@ function navigateToBackups() {
     backupModule.refreshBackupList();
 }
 
+function navigateToRepository() {
+    switchPage('repo-page', getString('title_repository'));
+    repoModule.fetchRepo();
+}
+
 function navigateToPatch() {
     preparePatchUI(getString('title_patch'), false);
     patchModule.getKpimgInfo();
@@ -113,6 +119,7 @@ export function setupRoute() {
     document.getElementById('not-installed').onclick = navigateToPatch;
     document.getElementById('logs').onclick = navigateToLogs;
     document.getElementById('backups').onclick = navigateToBackups;
+    document.getElementById('repository').onclick = navigateToRepository;
 
     document.querySelectorAll('.bottom-bar-item').forEach(item => {
         item.addEventListener('click', () => {

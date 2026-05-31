@@ -1,0 +1,26 @@
+{
+  "name": "KPM Community Repository",
+  "description": "Community-maintained KPM module repository",
+  "modules": [
+    {
+      "id": "selinux_hook",
+      "name": "SELinux Hook",
+      "version": "1.1.0",
+      "author": "community",
+      "description": "SELinux access filter for Magisk context",
+      "downloadUrl": "https://example.com/selinux_hook_1.1.0.zip",
+      "minKpVersion": "0.13.2",
+      "size": 65648
+    },
+    {
+      "id": "devsafe",
+      "name": "DevSafe",
+      "version": "3.0",
+      "author": "community",
+      "description": "Development safety module for Android 15 (kernel 6.6)",
+      "downloadUrl": "https://example.com/DevSafe_v3.0.zip",
+      "minKpVersion": "0.13.2",
+      "size": 209288
+    }
+  ]
+}

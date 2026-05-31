@@ -7,6 +7,7 @@ import * as kpmModule from './page/kpm.js';
 import * as excludeModule from './page/exclude.js';
 import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
+import * as repoModule from './page/kpm_repo.js';
 
 export const modDir = '/data/adb/modules/KPatch-Next';
 export const persistDir = '/data/adb/kp-next';
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     kpmModule.initKPMPage();
     logModule.initLogPage();
     backupModule.initBackupPage();
+    repoModule.initRepoPage();
     initBinarySource();
 
     // splash screen

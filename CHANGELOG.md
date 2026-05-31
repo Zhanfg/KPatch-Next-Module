@@ -2,6 +2,34 @@
 
 ## Changelog
 
+### v0.0.8
+
+**KPM User Experience Parity with APM:**
+
+Phase 1 — ZIP Packaging + One-Click Install:
+- KPM ZIP format: module.prop + .kpm/.ko/.o/.c in a zip
+- install_kpm.sh: validate, extract, install, auto-load
+- WebUI: FAB button now accepts .kpm AND .zip files
+- module.prop format (APM-compatible with KPM extensions):
+  id, name, version, event=, args=, autoLoad=true
+
+Phase 2 — Event Auto-Registration:
+- service.sh reads event= from saved module.prop configs
+- Dispatches POST_FS_DATA and BOOT_COMPLETED events
+- Loads modules with saved args on boot
+
+Phase 3 — Source Code Compilation:
+- compile_kpm.sh: TCC/clang/gcc wrapper for on-device compilation
+- Auto-generates minimal kpmodule.h if not present
+- install_kpm.sh detects .c sources and compiles automatically
+
+Phase 4 — KPM Online Repository:
+- kpm_repo.js: repository browser in WebUI
+- JSON format for module index (kpm_repo.json)
+- Download + install from repository
+- Settings → Repository to access
+- Default repo URL: GitHub raw content
+
 ### v0.0.7
 
 **Complete Root/Module Detection Hiding (KernelPatch fork):**
