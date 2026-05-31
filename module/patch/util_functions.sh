@@ -249,6 +249,10 @@ find_boot_image() {
     # Lets see what fstabs tells me
     BOOTIMAGE=$(grep -v '#' /etc/*fstab* | grep -E '/boot(img)?[^a-zA-Z]' | grep -oE '/dev/[a-zA-Z0-9_./-]*' | head -n 1)
   fi
+  if [ -z $BOOTIMAGE ]; then
+    # Fallback: try vendor_boot / init_boot (GKI devices)
+    BOOTIMAGE=$(find_block "vendor_boot$SLOT" "vendor_boot" "init_boot$SLOT" "init_boot")
+  fi
   [ -z $BOOTIMAGE ] || echo "BOOTIMAGE=$BOOTIMAGE"
 }
 

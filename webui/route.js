@@ -1,4 +1,6 @@
 import * as patchModule from './page/patch.js';
+import * as logModule from './page/log.js';
+import * as backupModule from './page/backup.js';
 import { getString } from './language.js';
 
 const backBtn = document.getElementById('back-btn');
@@ -78,6 +80,16 @@ function navigateToSettings() {
     switchPage('settings-page', getString('title_settings'), 'settings');
 }
 
+function navigateToLogs() {
+    switchPage('log-page', getString('title_logs'));
+    logModule.refreshLog();
+}
+
+function navigateToBackups() {
+    switchPage('backup-page', getString('title_backups'));
+    backupModule.refreshBackupList();
+}
+
 function navigateToPatch() {
     preparePatchUI(getString('title_patch'), false);
     patchModule.getKpimgInfo();
@@ -99,6 +111,8 @@ export function setupRoute() {
     document.getElementById('patch-btn').onclick = navigateToPatch;
     document.getElementById('uninstall').onclick = navigateToUnPatch;
     document.getElementById('not-installed').onclick = navigateToPatch;
+    document.getElementById('logs').onclick = navigateToLogs;
+    document.getElementById('backups').onclick = navigateToBackups;
 
     document.querySelectorAll('.bottom-bar-item').forEach(item => {
         item.addEventListener('click', () => {

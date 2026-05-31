@@ -17,6 +17,10 @@
     <string name="title_reboot_edl">重启到 EDL</string>
     <string name="title_kernel">内核</string>
     <string name="title_rehook_syscall">重挂钩 Syscall</string>
+    <string name="title_logs">日志</string>
+    <string name="title_backups">备份</string>
+    <string name="title_binary_source">二进制来源</string>
+    <string name="title_select_source">选择二进制来源</string>
     <!-- Buttons -->
     <string name="button_install">点击安装</string>
     <string name="button_uninstall">卸载</string>
@@ -28,6 +32,8 @@
     <string name="button_load">加载</string>
     <string name="button_unload">卸载</string>
     <string name="button_refresh">刷新</string>
+    <string name="button_save_to_storage">保存到存储</string>
+    <string name="button_delete">删除</string>
     <!-- Labels -->
     <string name="label_input_control_parameters">输入控制参数：</string>
     <string name="label_parameters">参数</string>
@@ -36,6 +42,8 @@
     <string name="label_system_default">系统默认</string>
     <string name="label_trigger_event">触发事件</string>
     <string name="label_flash_to_device">直接安装</string>
+    <string name="desc_kpatch_next">KernelSU-Next 分支，扩展内核支持 (3.18-6.12)</string>
+    <string name="desc_kernelpatch">原始项目，持续安全更新</string>
     <!-- Status -->
     <string name="status_not_installed">未安装</string>
     <string name="status_working">工作中 😋</string>
@@ -82,4 +90,11 @@
     <string name="msg_error_loading_apps">加载应用时出错：</string>
     <string name="msg_error_rendering_apps">渲染应用时出错：</string>
     <string name="msg_unknown">未知</string>
+    <string name="msg_no_log">暂无日志</string>
+    <string name="msg_no_backups">暂无备份</string>
+    <string name="msg_log_cleared">日志已清除</string>
+    <string name="msg_backup_saved">备份已保存到下载目录</string>
+    <string name="msg_backup_deleted">备份已删除</string>
+    <string name="msg_source_switched">已切换来源，重启生效</string>
+    <string name="msg_source_reboot">* 需要重启才能生效</string>
 </resources>

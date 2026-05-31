@@ -62,6 +62,12 @@ fi
 if [  $(kptools -i kernel -l | grep patched=false) ]; then
 	echo "- Backing boot.img "
   cp "$BOOTIMAGE" "ori.img" >/dev/null 2>&1
+  # Persistent backup
+  BACKUP_DIR="/data/adb/kp-next/backup"
+  mkdir -p "$BACKUP_DIR"
+  DATE=$(date +%y%m%d%H%M)
+  cp "$BOOTIMAGE" "$BACKUP_DIR/boot_backup_${DATE}.img"
+  echo "- Boot backup saved to $BACKUP_DIR/boot_backup_${DATE}.img"
 fi
 
 mv kernel kernel.ori

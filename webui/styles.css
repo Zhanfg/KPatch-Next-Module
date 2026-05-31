@@ -434,6 +434,59 @@ md-outlined-text-field {
     padding-bottom: 64px;
 }
 
+.log-container {
+    width: 100%;
+    padding-bottom: 64px;
+}
+
+.log-container pre {
+    font-size: 0.7em;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    background: var(--md-sys-color-surface-container);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.radio-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.radio-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.radio-title {
+    font-weight: 500;
+}
+
+.radio-desc {
+    font-size: 0.85em;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.warning-text {
+    font-size: 0.8em;
+    color: var(--md-sys-color-error);
+    margin-top: 8px;
+}
+
 .list-group {
     width: 100%;
 }
