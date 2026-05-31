@@ -35,8 +35,8 @@ ui_print ""
 
 # Wait for volume key (timeout 10s, default to KPatch-Next)
 chooseport() {
-    local i
-    for i in $(seq 1 50); do
+    local cnt
+    for cnt in $(seq 1 50); do
         local event
         event=$(getevent -lqc 1 2>/dev/null)
         if echo "$event" | grep -q "VOLUMEUP.*DOWN"; then
