@@ -16,7 +16,7 @@
     <string name="title_reboot_download">ダウンロードモードへ再起動</string>
     <string name="title_reboot_edl">EDL へ再起動</string>
     <string name="title_kernel">カーネル</string>
-    <string name="title_rehook_syscall">再フック Syscall</string>
+    <string name="title_rehook_syscall">リフック Syscall</string>
     <!-- Buttons -->
     <string name="button_install">クリックしてインストール</string>
     <string name="button_uninstall">アンインストール</string>
@@ -81,4 +81,28 @@
     <string name="msg_error_loading_apps">アプリの読み込みエラー: </string>
     <string name="msg_error_rendering_apps">アプリのレンダリングエラー: </string>
     <string name="msg_unknown">不明</string>
+    <string name="title_logs">ログ</string>
+    <string name="title_backups">バックアップ</string>
+    <string name="title_repository">リポジトリ</string>
+    <string name="title_repo_url">リポジトリURL</string>
+    <string name="title_binary_source">バイナリソース</string>
+    <string name="title_select_source">バイナリソースを選択</string>
+    <string name="button_save_to_storage">ストレージに保存</string>
+    <string name="button_delete">削除</string>
+    <string name="label_flash_to_device">デバイスにフラッシュ</string>
+    <string name="desc_kpatch_next">KernelSU-Next フォーク、拡張カーネルサポート (3.18-6.12)</string>
+    <string name="desc_kernelpatch">オリジナルプロジェクト、積極的なセキュリティ更新</string>
+    <string name="msg_no_log">ログなし</string>
+    <string name="msg_no_backups">バックアップなし</string>
+    <string name="msg_log_cleared">ログをクリアしました</string>
+    <string name="msg_backup_saved">バックアップをダウンロードに保存</string>
+    <string name="msg_backup_deleted">バックアップを削除</string>
+    <string name="msg_source_switched">ソース切り替え完了、再起動で反映</string>
+    <string name="msg_source_reboot">* 再起動が必要です</string>
+    <string name="msg_installing_kpm">KPMパッケージをインストール中...</string>
+    <string name="msg_kpm_installed">KPMパッケージのインストール完了</string>
+    <string name="msg_no_modules_in_repo">リポジトリにモジュールなし</string>
+    <string name="msg_repo_fetch_failed">リポジトリの取得に失敗</string>
+    <string name="msg_no_download_url">ダウンロードURLなし</string>
+    <string name="msg_repo_url_updated">リポジトリURLを更新</string>
 </resources>

@@ -16,7 +16,7 @@
     <string name="title_reboot_download">Перезагрузка в Download</string>
     <string name="title_reboot_edl">Перезагрузка в EDL</string>
     <string name="title_kernel">Ядро</string>
-    <string name="title_rehook_syscall">Rehook Syscall</string>
+    <string name="title_rehook_syscall">Перехват Syscall</string>
     <!-- Buttons -->
     <string name="button_install">Нажмите для установки</string>
     <string name="button_uninstall">Удалить</string>
@@ -35,7 +35,7 @@
     <string name="label_show_system_app">Показывать системные приложения</string>
     <string name="label_system_default">По умолчанию (системный)</string>
     <string name="label_trigger_event">Событие-триггер</string>
-    <string name="label_flash_to_device">Прошить в устройство</string>
+    <string name="label_flash_to_device">Прошить на устройство</string>
     <!-- Status -->
     <string name="status_not_installed">Не установлено</string>
     <string name="status_working">Работает 😋</string>
@@ -82,4 +82,27 @@
     <string name="msg_error_loading_apps">Ошибка загрузки приложений: </string>
     <string name="msg_error_rendering_apps">Ошибка отображения приложений: </string>
     <string name="msg_unknown">Неизвестно</string>
+    <string name="title_logs">Логи</string>
+    <string name="title_backups">Бэкапы</string>
+    <string name="title_repository">Репозиторий</string>
+    <string name="title_repo_url">URL репозитория</string>
+    <string name="title_binary_source">Источник бинарников</string>
+    <string name="title_select_source">Выберите источник</string>
+    <string name="button_save_to_storage">Сохранить</string>
+    <string name="button_delete">Удалить</string>
+    <string name="desc_kpatch_next">Форк KernelSU-Next, расширенная поддержка ядер (3.18-6.12)</string>
+    <string name="desc_kernelpatch">Оригинальный проект, активные обновления безопасности</string>
+    <string name="msg_no_log">Нет логов</string>
+    <string name="msg_no_backups">Нет бэкапов</string>
+    <string name="msg_log_cleared">Лог очищен</string>
+    <string name="msg_backup_saved">Бэкап сохранён в Загрузки</string>
+    <string name="msg_backup_deleted">Бэкап удалён</string>
+    <string name="msg_source_switched">Источник изменен, перезагрузите</string>
+    <string name="msg_source_reboot">* Требуется перезагрузка</string>
+    <string name="msg_installing_kpm">Установка KPM пакета...</string>
+    <string name="msg_kpm_installed">KPM пакет установлен</string>
+    <string name="msg_no_modules_in_repo">В репозитории нет модулей</string>
+    <string name="msg_repo_fetch_failed">Ошибка загрузки репозитория</string>
+    <string name="msg_no_download_url">Нет URL для загрузки</string>
+    <string name="msg_repo_url_updated">URL репозитория обновлён</string>
 </resources>

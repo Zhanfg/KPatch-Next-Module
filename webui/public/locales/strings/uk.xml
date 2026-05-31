@@ -16,7 +16,7 @@
     <string name="title_reboot_download">Перезавантаження в Download</string>
     <string name="title_reboot_edl">Перезавантаження в EDL</string>
     <string name="title_kernel">Ядро</string>
-    <string name="title_rehook_syscall">Rehook Syscall</string>
+    <string name="title_rehook_syscall">Перехоплення Syscall</string>
     <!-- Buttons -->
     <string name="button_install">Натисніть, щоб встановити</string>
     <string name="button_uninstall">Видалити</string>
@@ -35,7 +35,7 @@
     <string name="label_show_system_app">Показувати системні додатки</string>
     <string name="label_system_default">Системні за замовчуванням</string>
     <string name="label_trigger_event">Тригерна подія</string>
-    <string name="label_flash_to_device">Прошити в пристрій</string>
+    <string name="label_flash_to_device">Прошити на пристрій</string>
     <!-- Status -->
     <string name="status_not_installed">Не встановлено</string>
     <string name="status_working">Працює 😋</string>
@@ -82,4 +82,27 @@
     <string name="msg_error_loading_apps">Помилка завантаження програм: </string>
     <string name="msg_error_rendering_apps">Помилка рендерингу програм: </string>
     <string name="msg_unknown">Невідомо</string>
+    <string name="title_logs">Логи</string>
+    <string name="title_backups">Бекапи</string>
+    <string name="title_repository">Репозиторій</string>
+    <string name="title_repo_url">URL репозиторію</string>
+    <string name="title_binary_source">Джерело бінарників</string>
+    <string name="title_select_source">Оберіть джерело</string>
+    <string name="button_save_to_storage">Зберегти</string>
+    <string name="button_delete">Видалити</string>
+    <string name="desc_kpatch_next">Форк KernelSU-Next, розширена підтримка ядер (3.18-6.12)</string>
+    <string name="desc_kernelpatch">Оригінальний проєкт, активні оновлення безпеки</string>
+    <string name="msg_no_log">Немає логів</string>
+    <string name="msg_no_backups">Немає бекапів</string>
+    <string name="msg_log_cleared">Лог очищено</string>
+    <string name="msg_backup_saved">Бекап збережено до Завантажень</string>
+    <string name="msg_backup_deleted">Бекап видалено</string>
+    <string name="msg_source_switched">Джерело змінено, перезавантажте</string>
+    <string name="msg_source_reboot">* Потрібне перезавантаження</string>
+    <string name="msg_installing_kpm">Встановлення KPM пакету...</string>
+    <string name="msg_kpm_installed">KPM пакет встановлено</string>
+    <string name="msg_no_modules_in_repo">У репозиторії немає модулів</string>
+    <string name="msg_repo_fetch_failed">Помилка завантаження репозиторію</string>
+    <string name="msg_no_download_url">Немає URL для завантаження</string>
+    <string name="msg_repo_url_updated">URL репозиторію оновлено</string>
 </resources>

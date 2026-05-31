@@ -16,13 +16,13 @@
     <string name="title_reboot_download">重新啟動至 Download</string>
     <string name="title_reboot_edl">重新啟動至 EDL</string>
     <string name="title_kernel">核心</string>
-    <string name="title_rehook_syscall">重新Hook Syscall</string>
+    <string name="title_rehook_syscall">重掛鉤 Syscall</string>
     <!-- Buttons -->
     <string name="button_install">安裝</string>
     <string name="button_uninstall">解除安裝</string>
     <string name="button_embed_kpm">嵌入 KPM</string>
     <string name="button_start">開始</string>
-    <string name="button_unpatch">還原</string>
+    <string name="button_unpatch">取消修補</string>
     <string name="button_cancel">取消</string>
     <string name="button_ok">確定</string>
     <string name="button_load">載入</string>
@@ -82,4 +82,27 @@
     <string name="msg_error_loading_apps">載入應用時發生錯誤：</string>
     <string name="msg_error_rendering_apps">繪製應用時發生錯誤：</string>
     <string name="msg_unknown">未知</string>
+    <string name="title_logs">日誌</string>
+    <string name="title_backups">備份</string>
+    <string name="title_repository">軟體庫</string>
+    <string name="title_repo_url">軟體庫位址</string>
+    <string name="title_binary_source">二進位來源</string>
+    <string name="title_select_source">選擇二進位來源</string>
+    <string name="button_save_to_storage">儲存到裝置</string>
+    <string name="button_delete">刪除</string>
+    <string name="desc_kpatch_next">KernelSU-Next 分支，擴展核心支援 (3.18-6.12)</string>
+    <string name="desc_kernelpatch">原始專案，持續安全性更新</string>
+    <string name="msg_no_log">暫無日誌</string>
+    <string name="msg_no_backups">暫無備份</string>
+    <string name="msg_log_cleared">日誌已清除</string>
+    <string name="msg_backup_saved">備份已儲存到下載目錄</string>
+    <string name="msg_backup_deleted">備份已刪除</string>
+    <string name="msg_source_switched">已切換來源，重新啟動生效</string>
+    <string name="msg_source_reboot">* 需要重新啟動才能生效</string>
+    <string name="msg_installing_kpm">正在安裝 KPM 套件...</string>
+    <string name="msg_kpm_installed">KPM 套件安裝成功</string>
+    <string name="msg_no_modules_in_repo">軟體庫中暫無模組</string>
+    <string name="msg_repo_fetch_failed">取得軟體庫失敗</string>
+    <string name="msg_no_download_url">無下載連結</string>
+    <string name="msg_repo_url_updated">軟體庫位址已更新</string>
 </resources>
