@@ -6,6 +6,15 @@
     <title>KPatch-Next</title>
     <script src="index.js" type="module"></script>
     <link rel="stylesheet" href="styles.css" type="text/css">
+    <script>
+        // Fallback: if main JS fails to load (e.g. kernelsu-alt unavailable),
+        // remove [unresolved] after 5s so the page is at least visible
+        setTimeout(function() {
+            document.querySelectorAll('[unresolved]').forEach(function(el) {
+                el.removeAttribute('unresolved');
+            });
+        }, 5000);
+    </script>
 </head>
 <body>
     <div id="splash" class="splash">

@@ -1,5 +1,16 @@
 import '@material/web/all.js';
-import { exec, toast } from 'kernelsu-alt';
+
+let exec, toast;
+try {
+    const ks = await import('kernelsu-alt');
+    exec = ks.exec;
+    toast = ks.toast;
+} catch (e) {
+    console.error('kernelsu-alt not available:', e);
+    // Fallback: provide stub functions so the UI at least renders
+    exec = async () => ({ errno: -1, stdout: '', stderr: 'kernelsu-alt not available' });
+    toast = (msg) => console.warn('toast:', msg);
+}
 import { setupRoute } from './route.js';
 import { getString, loadTranslations } from './language.js';
 import * as patchModule from './page/patch.js';

@@ -2,6 +2,13 @@
 
 ## Changelog
 
+### v0.1.3
+
+**WebUI Fix:**
+- Fix white screen on devices: add 5s fallback timeout to remove [unresolved]
+- Handle kernelsu-alt import failure gracefully
+- Clean up stale build assets
+
 ### v0.1.2
 
 **Rebuild with freshly compiled KernelPatch 0.13.3 binaries**
