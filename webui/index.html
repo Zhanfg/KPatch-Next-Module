@@ -188,6 +188,7 @@
                             <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm80-80h480v-120H240v120Zm0-200h480v-120H240v120Z"/></svg></md-icon>
                             <div class="list-item-content">
                                 <div slot="headline" data-i18n="title_repository">Repository</div>
+                                <div slot="detail" id="current-repo-url"></div>
                             </div>
                         </div>
                         <div class="list-item" id="language">
@@ -395,6 +396,18 @@
                     </label>
                 </div>
                 <div class="warning-text" data-i18n="msg_source_reboot">* Reboot required to apply</div>
+            </div>
+            <div slot="actions">
+                <md-text-button class="cancel" data-i18n="button_cancel">Cancel</md-text-button>
+                <md-filled-button class="confirm" data-i18n="button_ok">OK</md-filled-button>
+            </div>
+        </md-dialog>
+        <!-- Repository URL -->
+        <md-dialog id="repo-url-dialog">
+            <div slot="headline" data-i18n="title_repo_url">Repository URL</div>
+            <div slot="content">
+                <md-outlined-text-field label="URL" id="repo-url-input" type="url"
+                    style="width:100%"></md-outlined-text-field>
             </div>
             <div slot="actions">
                 <md-text-button class="cancel" data-i18n="button_cancel">Cancel</md-text-button>

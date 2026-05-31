@@ -13,6 +13,14 @@ function getRepoUrl() {
     return localStorage.getItem(REPO_URL_KEY) || DEFAULT_REPO_URL;
 }
 
+function setRepoUrl(url) {
+    if (url && url.trim()) {
+        localStorage.setItem(REPO_URL_KEY, url.trim());
+    } else {
+        localStorage.removeItem(REPO_URL_KEY);
+    }
+}
+
 async function fetchRepo() {
     const url = getRepoUrl();
     const emptyMsg = document.getElementById('repo-empty-msg');
@@ -193,4 +201,4 @@ export function initRepoPage() {
     setupPullToRefresh(document.querySelector('#repo-page .page-content'), fetchRepo);
 }
 
-export { fetchRepo };
+export { fetchRepo, getRepoUrl, setRepoUrl };

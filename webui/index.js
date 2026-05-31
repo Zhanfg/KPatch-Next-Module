@@ -157,6 +157,29 @@ async function initBinarySource() {
     };
 }
 
+function initRepoSettings() {
+    const repoItem = document.getElementById('repository');
+    const repoUrlDetail = document.getElementById('current-repo-url');
+    const repoUrlDialog = document.getElementById('repo-url-dialog');
+    const repoUrlInput = document.getElementById('repo-url-input');
+
+    // Show current URL
+    repoUrlDetail.textContent = repoModule.getRepoUrl();
+
+    repoItem.onclick = () => {
+        repoUrlInput.value = repoModule.getRepoUrl();
+        repoUrlDialog.querySelector('.cancel').onclick = () => repoUrlDialog.close();
+        repoUrlDialog.querySelector('.confirm').onclick = () => {
+            const newUrl = repoUrlInput.value.trim();
+            repoModule.setRepoUrl(newUrl);
+            repoUrlDetail.textContent = repoModule.getRepoUrl();
+            toast(getString('msg_repo_url_updated'));
+            repoUrlDialog.close();
+        };
+        repoUrlDialog.show();
+    };
+}
+
 function getMaxChunkSize() {
     exec('getconf ARG_MAX').then((result) => {
         try {
@@ -229,6 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     backupModule.initBackupPage();
     repoModule.initRepoPage();
     initBinarySource();
+    initRepoSettings();
 
     // splash screen
     if (splash) {

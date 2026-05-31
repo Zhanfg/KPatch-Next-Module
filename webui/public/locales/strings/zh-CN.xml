@@ -20,6 +20,7 @@
     <string name="title_logs">日志</string>
     <string name="title_backups">备份</string>
     <string name="title_repository">仓库</string>
+    <string name="title_repo_url">仓库地址</string>
     <string name="title_binary_source">二进制来源</string>
     <string name="title_select_source">选择二进制来源</string>
     <!-- Buttons -->
@@ -103,4 +104,5 @@
     <string name="msg_no_modules_in_repo">仓库中暂无模块</string>
     <string name="msg_repo_fetch_failed">获取仓库失败</string>
     <string name="msg_no_download_url">无下载链接</string>
+    <string name="msg_repo_url_updated">仓库地址已更新</string>
 </resources>
