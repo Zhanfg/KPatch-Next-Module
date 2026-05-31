@@ -2,6 +2,19 @@
 
 ## Changelog
 
+### v0.0.3
+
+**KPM Event System & Format Extension (KernelPatch fork):**
+- Structured event system: KPM_EVENT(fn) macro for event callbacks
+- Events: POST_FS_DATA, BOOT_COMPLETED, MODULE_LOADED/UNLOADED, PRE/POST_KERNEL_INIT
+- Boot events auto-dispatch to all loaded KPM modules
+- SUPERCALL_KPM_EVENT (0x1150) for userspace event trigger
+- Compact symbol resolver (compact_find_symbol): curated KP + kernel symbols for KPM
+- Super access API: runtime struct member access by name (cred, etc.)
+- .o format support: auto-load without .kpm.info section
+- .ko format support: accept .init.text/.exit.text, kallsyms resolution via compact
+- All features from KernelPatch fork: App Profile, SELinux ops, umount, safe mode
+
 ### v0.0.2
 
 **Improvements:**
