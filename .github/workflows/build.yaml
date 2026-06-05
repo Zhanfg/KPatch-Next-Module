@@ -170,12 +170,23 @@ jobs:
         echo "=== QEMU ARM64 Emulation Test ==="
         chmod +x module/bin/kpatch module/bin/kptools
 
-        # Test: kpatch should run without crashing (hello will fail since no patched kernel, but binary should execute)
+        # kpatch is dynamically linked against Android's linker64.
+        # Set up sysroot from Android NDK for arm64.
+        ANDROID_SYSROOT="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+
+        if [ -d "$ANDROID_SYSROOT" ]; then
+          export QEMU_LD_PREFIX="$ANDROID_SYSROOT"
+          echo "Using NDK sysroot: $ANDROID_SYSROOT"
+        else
+          echo "NDK sysroot not found, testing without linker (expected to fail)"
+        fi
+
+        # Test: kpatch should run without segfault (hello will fail since no patched kernel)
         echo "--- kpatch hello ---"
         timeout 5 qemu-aarch64-static module/bin/kpatch hello 2>&1 || true
-        echo "(expected to fail — no patched kernel)"
+        echo "(expected to fail — no patched kernel or linker)"
 
-        # Test: kpatch should print version/help without kernel
+        # Test: kpatch should handle version query
         echo "--- kpatch version check ---"
         timeout 5 qemu-aarch64-static module/bin/kpatch kpver 2>&1 || true
         echo "(expected to fail — no patched kernel)"
@@ -189,8 +200,9 @@ jobs:
       run: |
         echo "=== kptools QEMU Test ==="
         chmod +x module/bin/kptools
+        ANDROID_SYSROOT="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+        [ -d "$ANDROID_SYSROOT" ] && export QEMU_LD_PREFIX="$ANDROID_SYSROOT"
 
-        # Test: kptools should show help/version
         echo "--- kptools help ---"
         timeout 5 qemu-aarch64-static module/bin/kptools --help 2>&1 || true
         echo "✓ kptools binary executed without segfault"
