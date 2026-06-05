@@ -1,7 +1,7 @@
 id=KPatch-Next
 name=KPatch-Next
-version=v0.2.2
-versionCode=17
+version=v0.2.3
+versionCode=18
 author=rifsxd, KOWX712
 description=Standalone implementation of KPM support for Magisk/KernelSU
 updateJson=https://raw.githubusercontent.com/Zhanfg/KPatch-Next-Module/main/update.json

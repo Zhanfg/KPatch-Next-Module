@@ -1,5 +1,6 @@
 import { exec, spawn, toast } from 'kernelsu-alt';
-import { modDir, persistDir, initInfo, MAX_CHUNK_SIZE, escapeShell, linkRedirect } from '../index.js';
+import { modDir, persistDir, MAX_CHUNK_SIZE, escapeShell, linkRedirect } from '../constants.js';
+import { initInfo } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
 import { escapeHTML, sanitizeFilename } from '../utils.js';
