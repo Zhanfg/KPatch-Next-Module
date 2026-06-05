@@ -2,6 +2,7 @@ import { exec, spawn, toast } from 'kernelsu-alt';
 import { modDir, persistDir, initInfo, MAX_CHUNK_SIZE, escapeShell, linkRedirect } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
+import { escapeHTML, sanitizeFilename } from '../utils.js';
 
 let allKpms = [];
 let searchQuery = '';
@@ -107,12 +108,12 @@ async function renderKpmList() {
             item.className = 'card module-card';
             item.innerHTML = `
                 <div class="module-card-header">
-                    <div class="module-card-title">${module.name}</div>
-                    <div class="module-card-subtitle">${module.version}, ${getString('info_author', module.author)}</div>
-                    <div class="module-card-subtitle">${getString('info_args', module.args ? module.args : '(null)')}</div>
+                    <div class="module-card-title">${escapeHTML(module.name)}</div>
+                    <div class="module-card-subtitle">${escapeHTML(module.version)}, ${getString('info_author', escapeHTML(module.author))}</div>
+                    <div class="module-card-subtitle">${getString('info_args', escapeHTML(module.args) || '(null)')}</div>
                 </div>
                 <div class="module-card-content">
-                    <div class="module-card-text">${module.description}</div>
+                    <div class="module-card-text">${escapeHTML(module.description)}</div>
                 </div>
                 <md-divider></md-divider>
                 <div class="module-card-actions">
@@ -349,7 +350,8 @@ async function uploadAndLoadModule() {
 }
 
 async function installKpmZip(file, onProgress, signal) {
-    const tmpPath = `${modDir}/tmp/${file.name}`;
+    const safeName = sanitizeFilename(file.name);
+    const tmpPath = `${modDir}/tmp/${safeName}`;
     try {
         await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
         await uploadFile(file, tmpPath, onProgress, signal);
@@ -376,7 +378,8 @@ async function installKpmZip(file, onProgress, signal) {
 }
 
 async function loadKpmFile(file, onProgress, signal) {
-    const tmpPath = `${modDir}/tmp/${file.name}`;
+    const safeName = sanitizeFilename(file.name);
+    const tmpPath = `${modDir}/tmp/${safeName}`;
     try {
         await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
         await uploadFile(file, tmpPath, onProgress, signal);

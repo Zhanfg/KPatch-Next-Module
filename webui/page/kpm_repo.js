@@ -2,6 +2,7 @@ import { exec, toast } from 'kernelsu-alt';
 import { modDir, persistDir } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
+import { escapeHTML, sanitizeUrl } from '../utils.js';
 
 const DEFAULT_REPO_URL = 'https://raw.githubusercontent.com/Zhanfg/KPatch-Next-Module/main/kpm_repo.json';
 const REPO_URL_KEY = 'kp-next_repo_url';
@@ -66,12 +67,12 @@ function renderRepoList() {
         const sizeStr = mod.size ? formatSize(mod.size) : '';
         card.innerHTML = `
             <div class="module-card-header">
-                <div class="module-card-title">${mod.name || mod.id}</div>
-                <div class="module-card-subtitle">${mod.version || '0.0.0'} ${sizeStr ? '· ' + sizeStr : ''}</div>
-                <div class="module-card-subtitle">${getString('info_author', mod.author || getString('msg_unknown'))}</div>
+                <div class="module-card-title">${escapeHTML(mod.name || mod.id)}</div>
+                <div class="module-card-subtitle">${escapeHTML(mod.version || '0.0.0')} ${sizeStr ? '· ' + sizeStr : ''}</div>
+                <div class="module-card-subtitle">${getString('info_author', escapeHTML(mod.author) || getString('msg_unknown'))}</div>
             </div>
             <div class="module-card-content">
-                <div class="module-card-text">${mod.description || getString('info_no_description')}</div>
+                <div class="module-card-text">${escapeHTML(mod.description) || getString('info_no_description')}</div>
             </div>
             <md-divider></md-divider>
             <div class="module-card-actions">
@@ -100,17 +101,23 @@ async function installFromRepo(mod) {
         return;
     }
 
+    const safeUrl = sanitizeUrl(mod.downloadUrl);
+    if (!safeUrl) {
+        toast(getString('msg_error', 'Invalid download URL'));
+        return;
+    }
+
     toast(getString('msg_installing_kpm'));
 
     try {
-        const filename = `${mod.id || mod.name}.zip`;
+        const filename = sanitizeFilename(mod.id || mod.name) + '.zip';
         const tmpPath = `${modDir}/tmp/${filename}`;
 
         await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
 
         // Download the module
         const dlResult = await exec(
-            `curl -sL "${mod.downloadUrl}" -o "${tmpPath}"`,
+            `curl -sL "${safeUrl}" -o "${tmpPath}"`,
             { env: { PATH: `/system/bin:$PATH` } }
         );
 

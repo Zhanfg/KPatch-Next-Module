@@ -29,7 +29,7 @@ if [ $? -ne 0 ]; then
   fi
 fi
 
-if [ ! $(kptools -i kernel -l | grep patched=false) ]; then
+if [ -n "$(kptools -i kernel -l 2>/dev/null | grep patched=false)" ]; then
 	echo "- kernel has been patched "
   if [ -f "new-boot.img" ]; then
     echo "- found backup boot.img ,use it for recovery"
@@ -51,7 +51,7 @@ if [ ! $(kptools -i kernel -l | grep patched=false) ]; then
 
 else
   echo "- no need unpatch"
-  exit 1
+  exit 0
 fi
 
 if [ -f "new-boot.img" ]; then

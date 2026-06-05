@@ -2,6 +2,7 @@ import { listPackages, getPackagesInfo, exec } from 'kernelsu-alt';
 import { modDir, persistDir } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
+import { escapeHTML } from '../utils.js';
 import fallbackIcon from '../icon.png';
 
 let allApps = [];
@@ -177,11 +178,11 @@ async function renderAppList() {
                     <md-ripple></md-ripple>
                     <div class="icon-container">
                         <div class="loader"></div>
-                        <img class="app-icon" data-package="${app.packageName || ''}" style="opacity: 0;">
+                        <img class="app-icon" data-package="${escapeHTML(app.packageName)}" style="opacity: 0;">
                     </div>
                     <div class="app-info">
-                        <div class="app-label">${app.appLabel || getString('msg_unknown')}</div>
-                        <div class="app-package">${app.packageName}</div>
+                        <div class="app-label">${escapeHTML(app.appLabel) || getString('msg_unknown')}</div>
+                        <div class="app-package">${escapeHTML(app.packageName)}</div>
                         ${extraTagsHtml}
                     </div>
                     <md-switch class="app-switch"></md-switch>

@@ -2,6 +2,7 @@ import { exec, spawn, toast } from 'kernelsu-alt';
 import { modDir, escapeShell } from '../index.js';
 import { handleFileUpload, uploadFile } from './kpm.js';
 import { getString } from '../language.js';
+import { escapeHTML } from '../utils.js';
 
 function uInt2String(ver) {
     const val = typeof ver === 'string' ? parseInt(ver, 16) : ver;
@@ -211,14 +212,14 @@ function renderKpmList() {
         card.innerHTML = `
             <div class="module-card-header">
                 <div class="flex-header">
-                    <div class="module-card-title">${item.name}</div>
+                    <div class="module-card-title">${escapeHTML(item.name)}</div>
                     ${isNew ? '' : '<div class="tag">' + getString('info_embedded') + '</div>'}
                 </div>
-                <div class="module-card-subtitle">${item.version}, ${getString('info_author', item.author || getString('msg_unknown'))}</div>
-                <div class="module-card-subtitle">${getString('info_args', item.args ? item.args : '(null)')}</div>
+                <div class="module-card-subtitle">${escapeHTML(item.version)}, ${getString('info_author', escapeHTML(item.author) || getString('msg_unknown'))}</div>
+                <div class="module-card-subtitle">${getString('info_args', escapeHTML(item.args) || '(null)')}</div>
             </div>
             <div class="module-card-content">
-                <div class="module-card-text">${item.description || getString('info_no_description')}</div>
+                <div class="module-card-text">${escapeHTML(item.description) || getString('info_no_description')}</div>
             </div>
             <md-divider></md-divider>
             <div class="module-card-actions">
@@ -336,7 +337,9 @@ function patch(type) {
     const flashToDevice = document.getElementById('flash-to-device');
 
     const onOutput = (data) => {
-        terminal.innerHTML += `<div>${data}</div>`;
+        const line = document.createElement('div');
+        line.textContent = data;
+        terminal.appendChild(line);
         pageContent.scrollTo({ top: pageContent.scrollHeight, behavior: 'smooth' });
     };
 

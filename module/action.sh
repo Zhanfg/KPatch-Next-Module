@@ -1,7 +1,8 @@
 #!/bin/sh
 
 MODDIR=${0%/*}
-. "$MODDIR/detect_env.sh" 2>/dev/null
+# Load environment detection (available for future use)
+. "$MODDIR/detect_env.sh" 2>/dev/null || true
 
 # Try KSUWebUIStandalone first (works with all managers)
 if pm path io.github.a13e300.ksuwebui >/dev/null 2>&1; then

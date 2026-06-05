@@ -52,14 +52,14 @@ if kptools -i kernel -f | grep -q "CONFIG_KPM=y"; then
 	exit 1
 fi
 
-if [ ! $(kptools -i kernel -f | grep CONFIG_KALLSYMS_ALL=y) ]; then
+if [ -z "$(kptools -i kernel -f 2>/dev/null | grep CONFIG_KALLSYMS_ALL=y)" ]; then
 	echo "! Patcher has Aborted."
 	echo "! KPatch-Next requires CONFIG_KALLSYMS_ALL to be Enabled."
 	echo "! But your kernel seems NOT enabled it."
 	exit 1
 fi
 
-if [  $(kptools -i kernel -l | grep patched=false) ]; then
+if [ -n "$(kptools -i kernel -l 2>/dev/null | grep patched=false)" ]; then
 	echo "- Backing boot.img "
   cp "$BOOTIMAGE" "ori.img" >/dev/null 2>&1
   # Persistent backup

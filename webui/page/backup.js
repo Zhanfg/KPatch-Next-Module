@@ -1,7 +1,8 @@
 import { exec, toast } from 'kernelsu-alt';
-import { persistDir, modDir } from '../index.js';
+import { persistDir, modDir, escapeShell } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
+import { escapeHTML } from '../utils.js';
 
 const BACKUP_DIR = `${persistDir}/backup`;
 
@@ -52,8 +53,8 @@ async function refreshBackupList() {
         card.className = 'card module-card';
         card.innerHTML = `
             <div class="module-card-header">
-                <div class="module-card-title">${backup.name}</div>
-                <div class="module-card-subtitle">${backup.dateStr} &middot; ${formatSize(backup.size)}</div>
+                <div class="module-card-title">${escapeHTML(backup.name)}</div>
+                <div class="module-card-subtitle">${escapeHTML(backup.dateStr)} &middot; ${formatSize(backup.size)}</div>
             </div>
             <md-divider></md-divider>
             <div class="module-card-actions">
@@ -67,12 +68,13 @@ async function refreshBackupList() {
         `;
 
         card.querySelector('.save-btn').onclick = async () => {
-            const result = await exec(`cp "${BACKUP_DIR}/${backup.name}" /storage/emulated/0/Download/${backup.name}`);
+            const safeName = escapeShell(backup.name);
+            const result = await exec(`cp ${escapeShell(BACKUP_DIR + '/' + backup.name)} /storage/emulated/0/Download/${safeName}`);
             toast(result.errno === 0 ? getString('msg_backup_saved') : getString('msg_error', result.stderr));
         };
 
         card.querySelector('.delete-btn').onclick = async () => {
-            await exec(`rm -f "${BACKUP_DIR}/${backup.name}"`);
+            await exec(`rm -f ${escapeShell(BACKUP_DIR + '/' + backup.name)}`);
             toast(getString('msg_backup_deleted'));
             refreshBackupList();
         };

@@ -30,9 +30,7 @@ fi
 
 # Copy binaries (single source: KernelPatch-Public)
 ui_print "- Installing KernelPatch binaries..."
-cp -f "$MODPATH/bin/kpatch" "$MODPATH/bin/kpatch" 2>/dev/null
-cp -f "$MODPATH/bin/kptools" "$MODPATH/bin/kptools" 2>/dev/null
-cp -f "$MODPATH/bin/kpimg" "$MODPATH/bin/kpimg" 2>/dev/null
+# Binaries are already in module/bin/ from the zip — no copy needed
 
 # Verify critical binaries
 if [ ! -x "$MODPATH/bin/kpatch" ]; then
