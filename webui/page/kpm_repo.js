@@ -121,14 +121,15 @@ async function installFromRepo(mod) {
 
         await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
 
-        // Download the module
+        // Download the module. Cap the download at 50 MiB to defend against a
+        // malicious or compromised repo that hands us a multi-GB payload.
         const dlResult = await exec(
-            `curl -sL "${safeUrl}" -o "${tmpPath}"`,
+            `curl -sL --max-filesize 52428800 "${safeUrl}" -o "${tmpPath}"`,
             { env: { PATH: `/system/bin:$PATH` } }
         );
 
         if (dlResult.errno !== 0) {
-            toast(getString('msg_error', 'Download failed'));
+            toast(getString('msg_error', 'Download failed (file too large or network error)'));
             return;
         }
 

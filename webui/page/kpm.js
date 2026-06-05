@@ -465,10 +465,15 @@ async function loadKpmFile(file, onProgress, signal) {
                             `${escapeShell(persistDir + '/kpm/' + safeName + '.kpm')}`
                         );
                     }
+                    // Success — safe to drop the tmp dir.
+                    exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
                 } else {
+                    // Keep the uploaded file in tmp/ on failure so the user can
+                    // inspect it (e.g. kptools -l -M) and so a retry can use
+                    // it without re-uploading. The next upload/load cycle's
+                    // `rm -rf ${modDir}/tmp/*` at the start will clear it.
                     toast(getString('msg_failed_load_module', info.name));
                 }
-                exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
                 dialog.close();
             };
 
