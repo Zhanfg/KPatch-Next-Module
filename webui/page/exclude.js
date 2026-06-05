@@ -78,7 +78,11 @@ async function saveExcludedList(excludedApps) {
         localStorage.setItem('kp-next_excluded_mock', csvContent);
         return;
     }
-    await exec(`echo "${csvContent}" > ${persistDir}/package_config`);
+    // Write via a quoted single-quoted heredoc and an explicit printf so a
+    // malicious package name with " $ ` or \ cannot inject into the shell.
+    // EOF delimiter is unique to the run; the leading '-' tolerates leading tabs.
+    const eof = `__KP_NEXT_EOF_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}__`;
+    await exec(`cat > ${escapeShell(persistDir + '/package_config')} <<'${eof}'\n${csvContent}\n${eof}`);
 }
 
 async function renderAppList() {

@@ -397,20 +397,26 @@ async function loadKpmFile(file, onProgress, signal) {
             };
 
             dialog.querySelector('.confirm').onclick = async () => {
-                const success = await loadModule(`${modDir}/tmp/${file.name}`);
+                // Sanitize once: the user's original filename is the trust boundary here.
+                // Both sides of the upload flow must use the SAME safe name to avoid
+                // a TOCTOU between upload() and loadModule().
+                const safeFileName = sanitizeFilename(file.name) + '.kpm';
+                const success = await loadModule(`${modDir}/tmp/${safeFileName}`);
                 if (success) {
                     toast(getString('msg_successfully_loaded', info.name));
                     refreshKpmList();
                     if (!checkbox.checked) {
-                        exec(`
-                            mkdir -p ${persistDir}/kpm
-                            cp -f "${modDir}/tmp/${file.name}" "${persistDir}/kpm/${info.name}.kpm"
-                        `);
+                        const safeName = sanitizeFilename(info.name);
+                        exec(
+                            `mkdir -p ${escapeShell(persistDir + '/kpm')}\n` +
+                            `cp -f ${escapeShell(modDir + '/tmp/' + safeFileName)} ` +
+                            `${escapeShell(persistDir + '/kpm/' + safeName + '.kpm')}`
+                        );
                     }
                 } else {
                     toast(getString('msg_failed_load_module', info.name));
                 }
-                exec(`rm -rf ${modDir}/tmp`);
+                exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
                 dialog.close();
             };
 

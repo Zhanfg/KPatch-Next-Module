@@ -23,7 +23,13 @@ function setRepoUrl(url) {
 }
 
 async function fetchRepo() {
-    const url = getRepoUrl();
+    const rawUrl = getRepoUrl();
+    const safeUrl = sanitizeUrl(rawUrl);
+    if (!safeUrl) {
+        const emptyMsg = document.getElementById('repo-empty-msg');
+        emptyMsg.textContent = getString('msg_repo_fetch_failed');
+        return;
+    }
     const emptyMsg = document.getElementById('repo-empty-msg');
     emptyMsg.textContent = getString('status_loading');
     emptyMsg.classList.remove('hidden');
@@ -31,7 +37,7 @@ async function fetchRepo() {
     try {
         // Use kpatch to fetch via the device's network
         const result = await exec(
-            `curl -sL "${url}"`,
+            `curl -sL "${safeUrl}"`,
             { env: { PATH: `${modDir}/bin:/system/bin:$PATH` } }
         );
 
