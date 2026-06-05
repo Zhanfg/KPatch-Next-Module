@@ -50,7 +50,11 @@ fi
 echo "[$(date)] kpatch hello OK" >> "$LOG"
 
 # Safe KPM load
+# Use a literal-glob test: when the directory is empty, the shell returns
+# the pattern itself unchanged. The [ -e ] check then correctly skips it,
+# avoiding the bug where the old [ -s ] guard would test the wrong path.
 for kpm in "$KPM_DIR"/*.kpm "$KPM_DIR"/*.ko "$KPM_DIR"/*.o; do
+    [ -e "$kpm" ] || continue
     [ -s "$kpm" ] || continue
     mod_basename=$(basename "$kpm" | sed 's/\.\(kpm\|ko\|o\)$//')
     args=""

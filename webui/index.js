@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     document.getElementById('reboot-fab').onclick = () => reboot();
 
-    getMaxChunkSize();
+    await getMaxChunkSize();
 
     await loadTranslations();
     await Promise.all([updateStatus(), initInfo()]);
