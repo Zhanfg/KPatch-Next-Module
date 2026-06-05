@@ -1,5 +1,6 @@
-@import url('https://mui.kernelsu.org/internal/insets.css');
-@import url('https://mui.kernelsu.org/internal/colors.css');
+/* External CSS from mui.kernelsu.org removed — using local fallback values */
+/* Original: @import url('https://mui.kernelsu.org/internal/insets.css'); */
+/* Original: @import url('https://mui.kernelsu.org/internal/colors.css'); */
 
 :root {
     --top-inset: var(--window-inset-top, 0px);
