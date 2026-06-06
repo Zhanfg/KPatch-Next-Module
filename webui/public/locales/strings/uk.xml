@@ -105,4 +105,7 @@
     <string name="msg_repo_fetch_failed">Помилка завантаження репозиторію</string>
     <string name="msg_no_download_url">Немає URL для завантаження</string>
     <string name="msg_repo_url_updated">URL репозиторію оновлено</string>
+    <string name="title_what_is_new">Що нового</string>
+    <string name="button_close">Закрити</string>
+    <string name="button_view_full_changelog">Переглянути повний список змін</string>
 </resources>

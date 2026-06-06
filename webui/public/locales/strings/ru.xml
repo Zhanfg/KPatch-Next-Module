@@ -105,4 +105,7 @@
     <string name="msg_repo_fetch_failed">Ошибка загрузки репозитория</string>
     <string name="msg_no_download_url">Нет URL для загрузки</string>
     <string name="msg_repo_url_updated">URL репозитория обновлён</string>
+    <string name="title_what_is_new">Что нового</string>
+    <string name="button_close">Закрыть</string>
+    <string name="button_view_full_changelog">Посмотреть полный список изменений</string>
 </resources>

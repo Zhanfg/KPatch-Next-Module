@@ -20,6 +20,7 @@ import * as excludeModule from './page/exclude.js';
 import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
 import * as repoModule from './page/kpm_repo.js';
+import { maybeShowChangelog } from './changelog.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
@@ -180,6 +181,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => splash.classList.add('exit'), 50);
         setTimeout(() => splash.remove(), 400);
     }
+
+    // Show the changelog modal the first time a user lands on a new version.
+    // No-op once they've dismissed it (tracked in localStorage).
+    maybeShowChangelog();
 });
 
 // Overwrite default dialog animation

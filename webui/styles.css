@@ -742,6 +742,35 @@ md-dialog [slot="content"] {
     overflow: visible;
 }
 
+#changelog-dialog [slot="content"] {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+#changelog-version {
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--md-sys-color-primary, #6750a4);
+    margin-bottom: 4px;
+}
+
+.changelog-list {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.5;
+    color: var(--md-sys-color-on-surface, #1d1b20);
+}
+
+.changelog-list li {
+    margin-bottom: 6px;
+}
+
+.changelog-list li.changelog-sub {
+    list-style: circle;
+    margin-left: 12px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
 md-dialog .checkbox-item {
     display: flex;
     align-items: center;

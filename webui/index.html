@@ -389,5 +389,18 @@
             </div>
         </md-dialog>
     </div>
+
+    <!-- Changelog modal -->
+    <md-dialog id="changelog-dialog">
+        <div slot="headline" data-i18n="title_what_is_new">What's New</div>
+        <div slot="content">
+            <div id="changelog-version"></div>
+            <ul id="changelog-list" class="changelog-list"></ul>
+        </div>
+        <div slot="actions">
+            <md-text-button class="changelog-close" data-i18n="button_close">Close</md-text-button>
+            <md-text-button id="changelog-view-all" data-i18n="button_view_full_changelog">View full changelog</md-text-button>
+        </div>
+    </md-dialog>
 </body>
 </html>

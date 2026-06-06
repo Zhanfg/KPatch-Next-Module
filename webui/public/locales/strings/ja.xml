@@ -105,4 +105,7 @@
     <string name="msg_repo_fetch_failed">リポジトリの取得に失敗</string>
     <string name="msg_no_download_url">ダウンロードURLなし</string>
     <string name="msg_repo_url_updated">リポジトリURLを更新</string>
+    <string name="title_what_is_new">新機能</string>
+    <string name="button_close">閉じる</string>
+    <string name="button_view_full_changelog">完全な変更履歴を見る</string>
 </resources>
