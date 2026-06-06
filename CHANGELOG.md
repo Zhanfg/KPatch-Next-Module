@@ -2,6 +2,53 @@
 
 ## Changelog
 
+### v0.2.4
+
+30+ correctness, security, and robustness fixes accumulated since v0.2.2. Highlights below; full list at https://github.com/Zhanfg/KPatch-Next-Module/pull/1
+
+#### 🔒 Security
+- **Shell injection** in user-controlled shell commands: `loadModule`, `cp`, `kpm_repo.js` URL, `exclude.js` CSV writer, `backup.js` save path, `index.js` rehook command. All paths now sanitize input and use `escapeShell` / `sanitizeUrl` / single-quoted heredocs.
+- **Backup path traversal** in save-to-storage: filename is now stripped to basename only; `..` rejected.
+- **Repo download size cap**: `--max-filesize 50 MiB` on curl to defend against malicious or compromised repos.
+
+#### 🐛 Critical fixes
+- **Flash guard precedence bug** in `boot_patch.sh`: the old `if [ -b ] || [ -c ] && [ -f ]` would silently attempt to flash block-device boot images even when `new-boot.img` was missing. Now requires both the device to be a block/char device AND `new-boot.img` to exist.
+- **KPM validator silently dropped the first `-M <file>`** argument because `prev_flag` was empty on iteration 0. Sentinel initialization fixes it; also dropped the bogus b700 big-endian aarch64 check.
+- **Compiler exit code masked** in `compile_kpm.sh`: `$?` read the subsequent `[ "$ARCH" = "arm64-v8a" ]` test, not the compiler. Explicit `compile_rc=$?` capture.
+- **`magiskboot repack` exit code misread** in `boot_patch.sh`: `$?` was reading the next `echo`, not magiskboot. Replaced with `if ! magiskboot ...`.
+- **Subshell-piped `while` loop** in `service.sh` lost state on exit; replaced with here-doc reader. Also added 5-minute `boot_completed` timeout to prevent infinite loop on broken ROMs.
+- **5-second infinite loop** in `status.sh` for `boot_completed` — same fix.
+- **`find -o` precedence bug** in `install_kpm.sh` matched `.kpm` directories and `.bak` files. Added explicit `-type f \( -o -o \)`.
+
+#### ⚡ Robustness
+- **Rehook switch UI** now rolls back on backend failure instead of leaving the toggle out of sync.
+- **`initInfo` shows em-dash** instead of literal `"undefined"` when `uname` returns empty.
+- **`tail -200` → `tail -n 200`** in `log.js` (toybox interprets the former as byte offset).
+- **`status.sh` race** between `cat tmp > file` and concurrent readers; replaced with `mv`. Sed delimiter changed to `|` so values with `/` don't break it.
+- **`status.sh` self-cleanup** uses `readlink -f` fallback for `realpath` (not on all toybox builds).
+- **Empty KPM directory** no longer makes the for-loop run once against a literal `*.kpm` string.
+- **`MAX_CHUNK_SIZE`** is now initialized via awaited async before uploads can start; no more race.
+- **Upload pipes** now have 60s/chunk + 120s/combine timeouts and respect AbortSignal so an aborted upload kills orphan base64 pipes.
+- **Pull-to-refresh** requires single-finger gestures; multi-finger and touchcancel abort cleanly.
+- **Load failure preserves the uploaded file** in `modDir/tmp` for inspection and retry.
+- **`kpmItemMap` prunes stale entries** on each render so a renamed module doesn't leave a stale listener bound to the old name.
+- **3-click KSUWebUIStandalone redirect** fires at most once per session.
+- **DEV short-circuit** in `parseBootimg` no longer skips `renderKpmList()` — dev UI now matches prod.
+
+#### 📦 Build / dependencies
+- `kpatch-next` pinned to `0.13.5-2` (was `latest` — non-reproducible builds).
+- `pnpm build || pnpm install && pnpm build` precedence fix.
+- `$ARGS_OPT` and `$SRC_FILES` quoting fixes in `install_kpm.sh` / `compile_kpm.sh`.
+
+#### 📋 Misc
+- New `KERNELPATCH_FORK_MAINTENANCE.md` documenting the relationship with the upstream `bmax121/KernelPatch` and how to sync.
+- `module.bin` arm64 test workflow unchanged.
+
+#### Credits
+- APatch boot scripts (vendored, with our patches).
+- bmax121/KernelPatch upstream.
+- KernelSU-Next/KPatch-Next.
+
 ### v0.2.2
 
 基于 KernelPatch 的 Magisk/KernelSU/ReSukiSU/APatch 内核补丁模块，提供 KPM 内核模块系统、Root 管理和反检测功能。
