@@ -465,9 +465,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('.trailing-btn').style.display = 'none';
         patchModule.patch("patch");
     };
-    document.getElementById('unpatch').onclick = () => {
+    // AK3-recovery (Fix 4): show a confirmation dialog explaining what
+    // will be preserved vs. lost by the auto_unpatch before we run it.
+    // Old behaviour (no dialog) is preserved for users on the old
+    // unpatch-only page that hasn't been initialized.
+    document.getElementById('unpatch').onclick = async () => {
         document.querySelector('.trailing-btn').style.display = 'none';
-        patchModule.patch("unpatch");
+        let proceed = true;
+        try {
+            // Lazy-import to avoid a startup-time cost on the patch
+            // page. If the module is missing, fall through to the
+            // legacy "just run it" path.
+            const unpatchModule = await import('./page/boot_unpatch.js');
+            proceed = await unpatchModule.confirmAutoUnpatch();
+        } catch (_) {
+            proceed = true;
+        }
+        if (proceed) {
+            patchModule.patch("unpatch");
+        }
     };
 
     const rebootMenu = document.getElementById('reboot-menu');

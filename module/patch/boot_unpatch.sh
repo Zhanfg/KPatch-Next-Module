@@ -47,6 +47,27 @@ auto_unpatch() {
         return 4
     fi
 
+    # ============================================================
+    # If a JSON manifest accompanies the backup, surface a one-line
+    # summary so service.sh / WebUI can show "preserved: AK3 27.0".
+    # If the manifest is missing (legacy backup) we don't fail —
+    # auto_unpatch must still work for old users.
+    # ============================================================
+    latest_manifest="${latest_backup%.img}.json"
+    if [ -f "$latest_manifest" ]; then
+        manifest_kpstate=$(grep -o '"kp_state"[[:space:]]*:[[:space:]]*"[^"]*"' "$latest_manifest" 2>/dev/null \
+            | head -n 1 | sed -E 's/.*"kp_state"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+        manifest_magver=$(grep -o '"magisk_version"[[:space:]]*:[[:space:]]*"[^"]*"' "$latest_manifest" 2>/dev/null \
+            | head -n 1 | sed -E 's/.*"magisk_version"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+        manifest_ksuver=$(grep -o '"ksu_version"[[:space:]]*:[[:space:]]*"[^"]*"' "$latest_manifest" 2>/dev/null \
+            | head -n 1 | sed -E 's/.*"ksu_version"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+        manifest_verified=$(grep -o '"backup_verified"[[:space:]]*:[[:space:]]*[a-z]*' "$latest_manifest" 2>/dev/null \
+            | head -n 1 | sed -E 's/.*"backup_verified"[[:space:]]*:[[:space:]]*([a-z]*).*/\1/')
+        echo "- auto_unpatch: manifest kp_state=${manifest_kpstate:-unknown} magisk=${manifest_magver:-null} ksu=${manifest_ksuver:-null} verified=${manifest_verified:-unknown}"
+    else
+        echo "- auto_unpatch: no manifest for $latest_backup (legacy backup)"
+    fi
+
     echo "- auto_unpatch: using latest backup: $latest_backup"
 
     if ! flash_image "$latest_backup" "$BOOTIMAGE"; then

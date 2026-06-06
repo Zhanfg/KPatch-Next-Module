@@ -586,5 +586,19 @@
             <md-filled-button class="confirm" data-i18n="button_purge">Purge</md-filled-button>
         </div>
     </md-dialog>
+    <!-- Auto-unpatch recovery confirmation dialog -->
+    <md-dialog id="auto-unpatch-dialog">
+        <div slot="headline" data-i18n="title_auto_unpatch">Auto-Unpatch Recovery Plan</div>
+        <div slot="content">
+            <div id="auto-unpatch-summary" class="update-hint"></div>
+            <div id="auto-unpatch-lose" class="auto-unpatch-section"></div>
+            <div id="auto-unpatch-keep" class="auto-unpatch-section"></div>
+            <div id="auto-unpatch-warning" class="auto-unpatch-warning"></div>
+        </div>
+        <div slot="actions">
+            <md-text-button class="cancel" data-i18n="button_cancel">Cancel</md-text-button>
+            <md-filled-button class="confirm" data-i18n="button_continue">Continue</md-filled-button>
+        </div>
+    </md-dialog>
 </body>
 </html>
