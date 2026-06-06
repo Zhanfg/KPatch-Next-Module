@@ -42,6 +42,8 @@
 
 #### 📋 Misc
 - New `KERNELPATCH_FORK_MAINTENANCE.md` documenting the relationship with the upstream `bmax121/KernelPatch` and how to sync.
+- WebUI: "What's New" changelog modal on first launch of a new version.
+- WebUI: theme toggle — light / dark / follow system (persists in localStorage).
 - `module.bin` arm64 test workflow unchanged.
 
 #### Credits

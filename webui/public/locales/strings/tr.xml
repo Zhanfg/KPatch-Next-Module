@@ -108,4 +108,10 @@
     <string name="title_what_is_new">What's New</string>
     <string name="button_close">Close</string>
     <string name="button_view_full_changelog">View full changelog</string>
+    <!-- Theme picker -->
+    <string name="title_theme">Tema</string>
+    <string name="title_select_theme">Tema seç</string>
+    <string name="theme_auto">Sistemi takip et</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
 </resources>

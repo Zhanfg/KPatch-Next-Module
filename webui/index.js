@@ -1,4 +1,9 @@
 import '@material/web/all.js';
+import { applyStoredTheme } from './theme.js';
+
+// Apply theme as early as possible — before any UI renders — so the user
+// doesn't see a flash of the wrong color.
+applyStoredTheme();
 
 let exec, toast;
 try {
@@ -21,6 +26,7 @@ import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
 import * as repoModule from './page/kpm_repo.js';
 import { maybeShowChangelog } from './changelog.js';
+import { initThemeSettings } from './theme.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
@@ -176,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     backupModule.initBackupPage();
     repoModule.initRepoPage();
     initRepoSettings();
+    initThemeSettings();
 
     if (splash) {
         setTimeout(() => splash.classList.add('exit'), 50);

@@ -108,4 +108,10 @@
     <string name="title_what_is_new">新功能</string>
     <string name="button_close">关闭</string>
     <string name="button_view_full_changelog">查看完整更新日志</string>
+    <!-- Theme picker -->
+    <string name="title_theme">主题</string>
+    <string name="title_select_theme">选择主题</string>
+    <string name="theme_auto">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
 </resources>

@@ -466,6 +466,11 @@ md-outlined-text-field {
     padding: 8px 0;
 }
 
+.radio-item span {
+    line-height: 1.4;
+    padding-top: 2px;
+}
+
 .radio-content {
     display: flex;
     flex-direction: column;

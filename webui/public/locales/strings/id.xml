@@ -108,4 +108,10 @@
     <string name="title_what_is_new">What's New</string>
     <string name="button_close">Close</string>
     <string name="button_view_full_changelog">View full changelog</string>
+    <!-- Theme picker -->
+    <string name="title_theme">Tema</string>
+    <string name="title_select_theme">Pilih Tema</string>
+    <string name="theme_auto">Ikuti sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
 </resources>

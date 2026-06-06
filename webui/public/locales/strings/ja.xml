@@ -108,4 +108,10 @@
     <string name="title_what_is_new">新機能</string>
     <string name="button_close">閉じる</string>
     <string name="button_view_full_changelog">完全な変更履歴を見る</string>
+    <!-- Theme picker -->
+    <string name="title_theme">テーマ</string>
+    <string name="title_select_theme">テーマを選択</string>
+    <string name="theme_auto">システムに従う</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
 </resources>

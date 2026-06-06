@@ -108,4 +108,10 @@
     <string name="title_what_is_new">What's New</string>
     <string name="button_close">Close</string>
     <string name="button_view_full_changelog">View full changelog</string>
+    <!-- Theme picker -->
+    <string name="title_theme">থিম</string>
+    <string name="title_select_theme">থিম নির্বাচন করুন</string>
+    <string name="theme_auto">সিস্টেম অনুসরণ করুন</string>
+    <string name="theme_light">হালকা</string>
+    <string name="theme_dark">অন্ধকার</string>
 </resources>

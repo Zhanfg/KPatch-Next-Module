@@ -108,4 +108,10 @@
     <string name="title_what_is_new">What's New</string>
     <string name="button_close">Close</string>
     <string name="button_view_full_changelog">View full changelog</string>
+    <!-- Theme picker -->
+    <string name="title_theme">Design</string>
+    <string name="title_select_theme">Design wählen</string>
+    <string name="theme_auto">System folgen</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
 </resources>

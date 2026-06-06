@@ -108,4 +108,10 @@
     <string name="title_what_is_new">Що нового</string>
     <string name="button_close">Закрити</string>
     <string name="button_view_full_changelog">Переглянути повний список змін</string>
+    <!-- Theme picker -->
+    <string name="title_theme">Тема</string>
+    <string name="title_select_theme">Виберіть тему</string>
+    <string name="theme_auto">Як у системі</string>
+    <string name="theme_light">Світла</string>
+    <string name="theme_dark">Темна</string>
 </resources>
