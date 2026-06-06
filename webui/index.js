@@ -74,6 +74,7 @@ async function updateStatus() {
         versionText.textContent = version;
         kpmModule.refreshKpmList();
         initRehook();
+        initSignaturePolicy();
         installedOnly.forEach(el => el.removeAttribute('hidden'));
     } else {
         installedOnly.forEach(el => el.setAttribute('hidden', ''));
@@ -234,6 +235,130 @@ function setRehookMode(isEnable) {
         updateRehookStatus();
     });
 }
+
+// ─── KPM signature policy (Settings page) ────────────────────────────
+//
+// The user can choose one of three policies for how service.sh should
+// handle unsigned / unverified KPM modules at boot:
+//
+//   off     — never check, load everything silently (default; preserves
+//             pre-v0.3.0 behavior, lets users load / embed their own
+//             unsigned KPMs without any friction).
+//   warn    — load everything, but log a warning to service.log AND
+//             append to /data/adb/kp-next/unsigned_modules.log. The
+//             WebUI shows a visible "Unsigned modules loaded" warning
+//             row in Settings so the user is aware.
+//   strict  — refuse to load any KPM that lacks a valid .kpm.sig.
+//
+// Policy is persisted to /data/adb/kp-next/config and read by
+// service.sh on every boot. The WebUI never relies on a localStorage
+// mirror because service.sh is the source of truth.
+
+let _sigPolicyLoaded = false;
+async function initSignaturePolicy() {
+    const select = document.getElementById('kpm-sig-policy-select');
+    const detail = document.getElementById('kpm-sig-policy-detail');
+    if (!select || _sigPolicyLoaded) return;
+    _sigPolicyLoaded = true;
+
+    // Read the current policy from /data/adb/kp-next/config on disk.
+    // The shell helper we call is intentionally permissive: it returns
+    // 'off' on any error, never throws.
+    let current = 'off';
+    try {
+        const r = await exec(
+            `cat ${escapeShell(persistDir + '/config')} 2>/dev/null | grep -E '^[[:space:]]*(export[[:space:]]+)?KPM_SIGNATURE_POLICY' | tail -1 | sed -E 's/^[^=]*=//' | tr -d '"\\r\\n' | tr 'A-Z' 'a-z'`,
+            { env: { PATH: `${modDir}/bin:$PATH` } }
+        );
+        if (result_ok(r) && r.stdout.trim()) {
+            const v = r.stdout.trim();
+            if (v === 'off' || v === 'warn' || v === 'strict') current = v;
+            else if (v === '0' || v === 'false') current = 'off';
+            else if (v === '1' || v === 'true' || v === 'yes' || v === 'on') current = 'strict';
+        }
+    } catch (_) { /* fall through with 'off' */ }
+
+    select.value = current;
+    if (detail) {
+        detail.textContent = getString(
+            current === 'strict' ? 'sig_policy_strict'
+            : current === 'warn'  ? 'sig_policy_warn'
+            :                       'sig_policy_off'
+        );
+    }
+
+    // On user change, write the new policy to disk and refresh the warning
+    // list. The next boot will pick it up; we don't need to re-launch
+    // service.sh because the policy is re-read every time it runs.
+    select.addEventListener('change', async () => {
+        const newPolicy = select.value;
+        if (!['off', 'warn', 'strict'].includes(newPolicy)) return;
+        const setRes = await exec(
+            // idempotent: if file exists, replace the line; otherwise append.
+            // Use single-quoted heredoc to make the value shell-safe.
+            `cfg=${escapeShell(persistDir + '/config')}; touch "$cfg"; ` +
+            `if grep -q '^[[:space:]]*\\(export[[:space:]]*\\)\\?KPM_SIGNATURE_POLICY' "$cfg"; then ` +
+            `  sed -i 's|^[[:space:]]*\\(export[[:space:]]*\\)\\?KPM_SIGNATURE_POLICY=.*|KPM_SIGNATURE_POLICY=${newPolicy}|' "$cfg"; ` +
+            `else ` +
+            `  printf '%s\\n' 'KPM_SIGNATURE_POLICY=${newPolicy}' >> "$cfg"; ` +
+            `fi; ` +
+            `sh ${escapeShell(modDir + '/status.sh')} >/dev/null 2>&1 || true`,
+            { env: { PATH: `${modDir}/bin:$PATH` } }
+        );
+        if (result_ok(setRes)) {
+            if (detail) {
+                detail.textContent = getString(
+                    newPolicy === 'strict' ? 'sig_policy_strict'
+                    : newPolicy === 'warn'  ? 'sig_policy_warn'
+                    :                         'sig_policy_off'
+                );
+            }
+            await refreshUnsignedWarning();
+            toast(getString('toast_sig_policy_saved'));
+        } else {
+            // Roll back the UI on failure.
+            select.value = current;
+            toast(getString('msg_error', setRes.stderr || ''));
+        }
+    });
+
+    await refreshUnsignedWarning();
+}
+
+// Show the "Unsigned KPM modules loaded" warning row in Settings when
+// the service.log indicates that warn-mode flagged modules on the last
+// boot. The marker file is written by service.sh when policy=warn and
+// a .kpm/.ko/.o was loaded without a .kpm.sig.
+async function refreshUnsignedWarning() {
+    const row = document.getElementById('unsigned-modules-warning');
+    const detail = document.getElementById('unsigned-modules-detail');
+    if (!row || !detail) return;
+    try {
+        const r = await exec(
+            `cat ${escapeShell(persistDir + '/unsigned_modules.log')} 2>/dev/null || true`,
+            { env: { PATH: `${modDir}/bin:$PATH` } }
+        );
+        if (!result_ok(r) || !r.stdout.trim()) {
+            row.setAttribute('hidden', '');
+            return;
+        }
+        // Parse "unsigned:<filename>:<epoch>" lines, keep unique filenames.
+        const lines = r.stdout.trim().split('\n').filter(Boolean);
+        const files = [...new Set(
+            lines.map(l => l.split(':')[1]).filter(Boolean)
+        )];
+        if (files.length === 0) {
+            row.setAttribute('hidden', '');
+            return;
+        }
+        detail.textContent = getString('unsigned_modules_count', files.length, files.slice(0, 3).join(', ') + (files.length > 3 ? '…' : ''));
+        row.removeAttribute('hidden');
+    } catch (_) {
+        row.setAttribute('hidden', '');
+    }
+}
+
+function result_ok(r) { return r && r.errno === 0; }
 
 function initRepoSettings() {
     const repoItem = document.getElementById('repository');

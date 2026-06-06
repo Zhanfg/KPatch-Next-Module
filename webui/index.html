@@ -256,6 +256,33 @@
                                 <div slot="detail" id="open-in-ksu-detail"></div>
                             </div>
                         </div>
+                        <!-- KPM signature policy — controls how unsigned
+                             / unverified KPM modules are handled at boot.
+                             off = no checks; warn = load but flag;
+                             strict = reject unsigned. -->
+                        <label class="list-item installed-only" id="kpm-sig-policy">
+                            <md-ripple></md-ripple>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-100 0-170-70t-70-170v-240l200 200-56 57-64-64v47q0 66 47 113t113 47q66 0 113-47t47-113v-127q-36-14-58-44.5T520-600q0-38 22-68.5t58-44.5v-167h80v167q36 14 58 44.5t22 68.5q0 38-22 69t-58 44v127q0 100-70 170t-170 70Zm200-440q17 0 28.5-11.5T680-560q0-17-11.5-28.5T640-600q-17 0-28.5 11.5T600-560q0 17 11.5 28.5T640-560Z"/></svg></md-icon>
+                            <div class="list-item-content">
+                                <div slot="headline" data-i18n="title_kpm_sig_policy">KPM signature check</div>
+                                <div slot="detail" id="kpm-sig-policy-detail" data-i18n="sig_policy_off">Off — load everything</div>
+                            </div>
+                            <div class="list-item-trailing">
+                                <md-outlined-select id="kpm-sig-policy-select" style="min-width: 140px;">
+                                    <md-select-option value="off" data-i18n="sig_policy_off_short"><div slot="headline">Off</div></md-select-option>
+                                    <md-select-option value="warn" data-i18n="sig_policy_warn_short"><div slot="headline">Warn</div></md-select-option>
+                                    <md-select-option value="strict" data-i18n="sig_policy_strict_short"><div slot="headline">Strict</div></md-select-option>
+                                </md-outlined-select>
+                            </div>
+                        </label>
+                        <div class="list-item installed-only hidden" id="unsigned-modules-warning">
+                            <md-ripple></md-ripple>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" style="fill: #f57c00;"><path d="M109-120 480-920l371 800H109Zm371-86q12 0 21-9t9-21q0-12-9-21t-21-9q-12 0-21 9t-9 21q0 12 9 21t21 9Zm0-96q12 0 21-9t9-21v-128q0-12-9-21t-21-9q-12 0-21 9t-9 21v128q0 12 9 21t21 9Z"/></svg></md-icon>
+                            <div class="list-item-content">
+                                <div slot="headline" data-i18n="title_unsigned_modules_warning">Unsigned KPM modules loaded</div>
+                                <div slot="detail" id="unsigned-modules-detail" class="warning-detail"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
