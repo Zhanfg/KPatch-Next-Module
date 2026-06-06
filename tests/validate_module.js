@@ -31,7 +31,14 @@ const REQUIRED_BINARIES = [
     { name: 'kpatch',      desc: 'User-space supercall tool', minSize: 1024 },
     { name: 'kptools',     desc: 'Kernel patching tool',      minSize: 1024 },
     { name: 'kpimg',       desc: 'KernelPatch kernel image',  minSize: 1024 },
-    { name: 'magiskboot',  desc: 'Magisk boot image tool',    minSize: 1024 },
+    // magiskboot is only needed for the Magisk/legacy boot_patch.sh
+    // path. The newer kp-safemode path doesn't unpack/repack with
+    // magiskboot; it works on a pre-unpacked kernel. KPM-install
+    // paths that bypass boot_patch.sh entirely (the typical APatch
+    // / KernelSU-Next / Magisk flow) also don't need it. Treat
+    // it as optional so a CI that hasn't built it yet (e.g. during
+    // the SHA-hash refresh window) doesn't fail the package check.
+    { name: 'magiskboot',  desc: 'Magisk boot image tool',    minSize: 1024, optional: true },
     { name: 'kp-safemode', desc: 'Safe-mode query helper',    minSize: 4096, optional: true },
 ];
 

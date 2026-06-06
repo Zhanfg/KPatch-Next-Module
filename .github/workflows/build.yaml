@@ -528,6 +528,13 @@ jobs:
           echo "need_release=false" >> $GITHUB_OUTPUT
 
   release:
+    # P1 (security review): restore 'contents: write' here. The
+    # workflow-level default is read-only; only the release job
+    # needs to push tags + create the GitHub release. The
+    # 'softprops/action-gh-release' step below will fail closed
+    # if this permission isn't granted.
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     needs: build
     if: needs.build.outputs.check_tag == 'true'
