@@ -155,6 +155,12 @@ jobs:
       run: grep -v '^#' version.properties | sed -e 's/ *= */=/g' -e 's/"//g' >> $GITHUB_ENV
 
     - name: Download KernelPatch binaries
+      env:
+        # GitHub CLI requires a token to download release artifacts
+        # from another repo. The standard GITHUB_TOKEN works for
+        # cross-repo public releases. Scoped to this step (not the
+        # whole job) to limit blast radius.
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mkdir -p module/bin
         TAG="${{ env['kernelpatch'] }}"
@@ -306,6 +312,12 @@ jobs:
 
     # === KernelPatch binaries (kpimg, kptools) ===
     - name: Download KernelPatch binaries
+      env:
+        # GitHub CLI requires a token to download release artifacts
+        # from another repo. The standard GITHUB_TOKEN works for
+        # cross-repo public releases. Scoped to this step (not the
+        # whole job) to limit blast radius.
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mkdir -p module/bin
         TAG="${{ env['kernelpatch'] }}"
