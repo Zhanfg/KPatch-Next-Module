@@ -3,6 +3,7 @@ import { modDir, escapeShell } from '../index.js';
 import { handleFileUpload, uploadFile } from './kpm.js';
 import { getString } from '../language.js';
 import { escapeHTML } from '../utils.js';
+import { startProgress, resetProgress } from '../patch-progress.js';
 
 function uInt2String(ver) {
     const val = typeof ver === 'string' ? parseInt(ver, 16) : ver;
@@ -345,18 +346,26 @@ function patch(type) {
     const terminal = document.querySelector('#patch-terminal');
     const pageContent = terminal.closest('.page-content');
     const flashToDevice = document.getElementById('flash-to-device');
+    const progressCard = document.getElementById('patch-progress-card');
+    const progressContainer = document.getElementById('patch-progress');
 
     const onOutput = (data) => {
         const line = document.createElement('div');
         line.textContent = data;
         terminal.appendChild(line);
         pageContent.scrollTo({ top: pageContent.scrollHeight, behavior: 'smooth' });
+        progress?.onLine(data);
     };
 
     if (!bootDev) {
         terminal.textContent = getString('msg_error_no_boot_image');
         return;
     }
+
+    // Reset and show the progress card.
+    if (progressCard) progressCard.classList.remove('animate-hidden');
+    resetProgress();
+    const progress = startProgress(type, progressContainer);
 
     let args = ['sh'];
     if (type === "patch") {
@@ -400,6 +409,7 @@ function patch(type) {
     process.stdout.on('data', onOutput);
     process.stderr.on('data', onOutput);
     process.on('exit', (code) => {
+        progress?.finish(code === 0);
         if (code === 0) {
             document.getElementById('reboot-fab').classList.remove('hide');
             bootSlot = '';

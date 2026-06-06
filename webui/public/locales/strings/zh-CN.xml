@@ -119,4 +119,12 @@
     <string name="status_safemode_on">已启用 — SU 和 KPM 已被阻止</string>
     <string name="status_safemode_off">已关闭</string>
     <string name="status_safemode_unknown">未知 (kp-safemode 未安装)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">进度</string>
+    <string name="patch_step_extract">定位并解压 boot 镜像</string>
+    <string name="patch_step_validate">校验嵌入的 KPM</string>
+    <string name="patch_step_patch">补丁内核</string>
+    <string name="patch_step_repack">重新打包 boot 镜像</string>
+    <string name="patch_step_flash">刷入设备</string>
+    <string name="patch_step_unpatch">撤销内核补丁</string>
 </resources>

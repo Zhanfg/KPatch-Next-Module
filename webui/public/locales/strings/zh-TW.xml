@@ -119,4 +119,12 @@
     <string name="status_safemode_on">已啟用 — SU 和 KPM 已被阻止</string>
     <string name="status_safemode_off">已關閉</string>
     <string name="status_safemode_unknown">未知 (kp-safemode 未安裝)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">進度</string>
+    <string name="patch_step_extract">定位並解壓 boot 映像</string>
+    <string name="patch_step_validate">校驗嵌入的 KPM</string>
+    <string name="patch_step_patch">修補核心</string>
+    <string name="patch_step_repack">重新打包 boot 映像</string>
+    <string name="patch_step_flash">刷入裝置</string>
+    <string name="patch_step_unpatch">撤銷核心修補</string>
 </resources>

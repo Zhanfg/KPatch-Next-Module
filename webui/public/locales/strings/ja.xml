@@ -119,4 +119,12 @@
     <string name="status_safemode_on">有効 — SU と KPM はブロック中</string>
     <string name="status_safemode_off">オフ</string>
     <string name="status_safemode_unknown">不明 (kp-safemode 未インストール)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">進捗</string>
+    <string name="patch_step_extract">ブートイメージの検出と展開</string>
+    <string name="patch_step_validate">埋め込み KPM の検証</string>
+    <string name="patch_step_patch">カーネルにパッチ適用</string>
+    <string name="patch_step_repack">ブートイメージの再パック</string>
+    <string name="patch_step_flash">デバイスへフラッシュ</string>
+    <string name="patch_step_unpatch">カーネルのパッチ解除</string>
 </resources>

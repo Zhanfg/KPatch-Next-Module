@@ -119,4 +119,12 @@
     <string name="status_safemode_on">مفعّل — SU و KPMs محظورة</string>
     <string name="status_safemode_off">معطل</string>
     <string name="status_safemode_unknown">غير معروف (kp-safemode غير مثبت)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">التقدم</string>
+    <string name="patch_step_extract">تحديد موقع صورة boot واستخراجها</string>
+    <string name="patch_step_validate">التحقق من وحدات KPM المضمنة</string>
+    <string name="patch_step_patch">ترقيع النواة</string>
+    <string name="patch_step_repack">إعادة حزم صورة boot</string>
+    <string name="patch_step_flash">الوميض إلى الجهاز</string>
+    <string name="patch_step_unpatch">إلغاء ترقيع النواة</string>
 </resources>

@@ -119,4 +119,12 @@
     <string name="status_safemode_on">Активний — SU та KPM заблоковано</string>
     <string name="status_safemode_off">Вимкнено</string>
     <string name="status_safemode_unknown">Невідомо (kp-safemode не встановлено)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">Прогрес</string>
+    <string name="patch_step_extract">Знайти та розпакувати образ boot</string>
+    <string name="patch_step_validate">Перевірити вбудовані KPM</string>
+    <string name="patch_step_patch">Патч ядра</string>
+    <string name="patch_step_repack">Перезібрати образ boot</string>
+    <string name="patch_step_flash">Прошити на пристрій</string>
+    <string name="patch_step_unpatch">Відкотити патч ядра</string>
 </resources>

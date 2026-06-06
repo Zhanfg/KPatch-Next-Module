@@ -119,4 +119,12 @@
     <string name="status_safemode_on">Aktiv — SU und KPMs blockiert</string>
     <string name="status_safemode_off">Aus</string>
     <string name="status_safemode_unknown">Unbekannt (kp-safemode nicht installiert)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">Fortschritt</string>
+    <string name="patch_step_extract">Boot-Image finden & extrahieren</string>
+    <string name="patch_step_validate">Eingebettete KPMs prüfen</string>
+    <string name="patch_step_patch">Kernel patchen</string>
+    <string name="patch_step_repack">Boot-Image neu packen</string>
+    <string name="patch_step_flash">Auf Gerät flashen</string>
+    <string name="patch_step_unpatch">Kernel entpatchen</string>
 </resources>

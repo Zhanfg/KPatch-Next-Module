@@ -119,4 +119,12 @@
     <string name="status_safemode_on">সক্রিয় — SU এবং KPMs ব্লক করা আছে</string>
     <string name="status_safemode_off">বন্ধ</string>
     <string name="status_safemode_unknown">অজানা (kp-safemode ইনস্টল নেই)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">অগ্রগতি</string>
+    <string name="patch_step_extract">boot ইমেজ সনাক্ত ও বের করা</string>
+    <string name="patch_step_validate">এম্বেডেড KPM যাচাই</string>
+    <string name="patch_step_patch">কার্নেল প্যাচ</string>
+    <string name="patch_step_repack">boot ইমেজ পুনঃপ্যাক</string>
+    <string name="patch_step_flash">ডিভাইসে ফ্ল্যাশ</string>
+    <string name="patch_step_unpatch">কার্নেল আনপ্যাচ</string>
 </resources>

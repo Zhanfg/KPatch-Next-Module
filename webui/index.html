@@ -288,6 +288,10 @@
                         <md-filled-button class="patch-only" id="start" data-i18n="button_start">Start</md-filled-button>
                         <md-filled-button class="unpatch-only" id="unpatch" data-i18n="button_unpatch">UnPatch</md-filled-button>
                     </div>
+                    <div class="card content-padding patch-only animate-hidden" id="patch-progress-card">
+                        <div class="card-title" slot="headline" data-i18n="title_progress">Progress</div>
+                        <div id="patch-progress"></div>
+                    </div>
                     <div class="output-terminal content-padding" id="patch-terminal"></div>
                 </div>
                 <div class="fab-container">

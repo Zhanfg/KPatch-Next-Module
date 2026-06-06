@@ -740,6 +740,84 @@ md-menu-item label {
     position: relative;
 }
 
+/* Patch step progress indicator. Each step is a flex row with an icon
+ * (number / spinner / check / cross) and a label. */
+#patch-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.patch-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: background-color 200ms ease;
+}
+
+.patch-step.pending .patch-step-label {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    opacity: 0.6;
+}
+
+.patch-step.active {
+    background: var(--md-sys-color-secondary-container, #e8def8);
+}
+.patch-step.active .patch-step-label {
+    color: var(--md-sys-color-on-secondary-container, #1d192b);
+    font-weight: 500;
+}
+
+.patch-step.done .patch-step-label {
+    color: var(--md-sys-color-on-surface, #1d1b20);
+}
+
+.patch-step.failed {
+    background: var(--md-sys-color-error-container, #f9dedc);
+}
+.patch-step.failed .patch-step-label {
+    color: var(--md-sys-color-on-error-container, #8c1d18);
+}
+
+.patch-step-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.patch-step-icon .pending-dot {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--md-sys-color-surface-variant, #e7e0ec);
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.patch-step-icon .pending-dot.check {
+    background: #2e7d32;
+    color: #fff;
+}
+
+.patch-step-icon .pending-dot.cross {
+    background: var(--md-sys-color-error, #b3261e);
+    color: var(--md-sys-color-on-error, #fff);
+}
+
+.patch-step-label {
+    font-size: 0.95em;
+}
+
 md-dialog [slot="content"] {
     display: flex;
     flex-direction: column;

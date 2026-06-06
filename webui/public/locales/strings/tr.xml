@@ -119,4 +119,12 @@
     <string name="status_safemode_on">Etkin — SU ve KPM engellendi</string>
     <string name="status_safemode_off">Kapalı</string>
     <string name="status_safemode_unknown">Bilinmiyor (kp-safemode yüklü değil)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">İlerleme</string>
+    <string name="patch_step_extract">Boot görüntüsünü bul ve ayıkla</string>
+    <string name="patch_step_validate">Gömülü KPM'leri doğrula</string>
+    <string name="patch_step_patch">Kernel yaması uygula</string>
+    <string name="patch_step_repack">Boot görüntüsünü yeniden paketle</string>
+    <string name="patch_step_flash">Cihaza flaşla</string>
+    <string name="patch_step_unpatch">Kernel yamasını geri al</string>
 </resources>

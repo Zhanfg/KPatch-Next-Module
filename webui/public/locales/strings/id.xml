@@ -119,4 +119,12 @@
     <string name="status_safemode_on">Aktif — SU dan KPM diblokir</string>
     <string name="status_safemode_off">Nonaktif</string>
     <string name="status_safemode_unknown">Tidak diketahui (kp-safemode tidak terpasang)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">Kemajuan</string>
+    <string name="patch_step_extract">Cari & ekstrak gambar boot</string>
+    <string name="patch_step_validate">Validasi KPM tertanam</string>
+    <string name="patch_step_patch">Patch kernel</string>
+    <string name="patch_step_repack">Repack gambar boot</string>
+    <string name="patch_step_flash">Flash ke perangkat</string>
+    <string name="patch_step_unpatch">Batalkan patch kernel</string>
 </resources>

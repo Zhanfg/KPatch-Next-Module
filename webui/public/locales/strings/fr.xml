@@ -119,4 +119,12 @@
     <string name="status_safemode_on">Actif — SU et KPMs bloqués</string>
     <string name="status_safemode_off">Désactivé</string>
     <string name="status_safemode_unknown">Inconnu (kp-safemode non installé)</string>
+    <!-- Patch step progress -->
+    <string name="title_progress">Progression</string>
+    <string name="patch_step_extract">Localiser et extraire l'image boot</string>
+    <string name="patch_step_validate">Valider les KPM intégrés</string>
+    <string name="patch_step_patch">Patcher le noyau</string>
+    <string name="patch_step_repack">Recompacter l'image boot</string>
+    <string name="patch_step_flash">Flasher sur l'appareil</string>
+    <string name="patch_step_unpatch">Annuler le patch du noyau</string>
 </resources>
