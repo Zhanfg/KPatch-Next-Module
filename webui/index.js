@@ -54,6 +54,7 @@ import * as excludeModule from './page/exclude.js';
 import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
 import * as repoModule from './page/kpm_repo.js';
+import * as stealthModule from './page/stealth.js';
 import { maybeShowChangelog } from './changelog.js';
 import { initThemeSettings } from './theme.js';
 import { maybeNotifyUpdate, checkForUpdates } from './update-check.js';
@@ -488,6 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     logModule.initLogPage();
     backupModule.initBackupPage();
     repoModule.initRepoPage();
+    stealthModule.initStealthPage();
     initRepoSettings();
     initThemeSettings();
     initUpdateCheck();

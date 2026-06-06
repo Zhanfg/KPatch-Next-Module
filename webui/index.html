@@ -298,6 +298,27 @@
                     </md-fab>
                 </div>
             </div>
+            <!-- Stealth Center: per-KPM toggle controls for the
+                 anti-detection suite. Each toggle writes a config
+                 file under /data/adb/kp-next/kpm_config/ which the
+                 corresponding KPM reads at next boot. -->
+            <div id="stealth-page" class="page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <h2 data-i18n="title_stealth_center">Stealth Center</h2>
+                        <p class="page-subtitle" data-i18n="subtitle_stealth_center">
+                            Toggle each KernelPatch module to hide root/hook signals from app scanners.
+                            Changes apply on next boot.
+                        </p>
+                    </div>
+                    <div class="list-group stealth-list" id="stealth-list">
+                        <!-- Stealth KPM cards rendered by page/stealth.js -->
+                    </div>
+                    <div class="empty-list" id="stealth-empty-msg" data-i18n="msg_no_stealth_modules">
+                        No stealth modules installed. Install from the Repository tab.
+                    </div>
+                </div>
+            </div>
             <!-- Logs -->
             <div id="log-page" class="page">
                 <div class="page-content">
@@ -394,6 +415,11 @@
                 <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z" /></svg></md-icon>
                 <md-icon slot="selected"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm112-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z" /></svg></md-icon>
                 <div class="bottom-bar-item-text" data-i18n="title_settings">Settings</div>
+            </div>
+            <div class="bottom-bar-item" id="stealth">
+                <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-100 0-170-70t-70-170v-240l200 200-56 57-64-64v47q0 66 47 113t113 47q66 0 113-47t47-113v-127q-36-14-58-44.5T520-600q0-38 22-68.5t58-44.5v-167h80v167q36 14 58 44.5t22 68.5q0 38-22 69t-58 44v127q0 100-70 170t-170 70Zm200-440q17 0 28.5-11.5T680-560q0-17-11.5-28.5T640-600q-17 0-28.5 11.5T600-560q0 17 11.5 28.5T640-560Zm-159-4 50-50-31-31-50 50 31 31ZM160-200l-56-56 202-202q-35-35-63.5-80T190-640h84q20 39 40 68t48 58q33-33 68.5-92.5T484-720H40v-80h280v-80h80v80h280v80H564q-21 72-63 148t-83 116l96 98-30 82-122-125-202 201Z"/></svg></md-icon>
+                <md-icon slot="selected"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-100 0-170-70t-70-170v-240l200 200-56 57-64-64v47q0 66 47 113t113 47q66 0 113-47t47-113v-127q-36-14-58-44.5T520-600q0-38 22-68.5t58-44.5v-167h80v167q36 14 58 44.5t22 68.5q0 38-22 69t-58 44v127q0 100-70 170t-170 70Z"/></svg></md-icon>
+                <div class="bottom-bar-item-text" data-i18n="title_stealth">Stealth</div>
             </div>
         </div>
     </div>
