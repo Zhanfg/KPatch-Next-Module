@@ -172,6 +172,8 @@
     <string name="repo_main">Main</string>
     <string name="repo_more">more</string>
     <string name="repo_placeholder_name">Display name</string>
+    <!-- Module signature status -->
+    <string name="tag_signed">Signed</string>
     <!-- Backup purge -->
     <string name="title_purge_backups">Purge old backups</string>
     <string name="label_keep_count">Keep the most recent backups:</string>

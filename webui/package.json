@@ -4,7 +4,8 @@
   "description": "KPatch-Next-Module WebUI",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --emptyOutDir"
+    "build": "vite build --emptyOutDir",
+    "test": "vitest run"
   },
   "keywords": [
     "KernelPatch",
@@ -16,8 +17,10 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
+    "jsdom": "^25.0.1",
     "vite": "^7.3.1",
-    "vite-plugin-html": "^3.2.2"
+    "vite-plugin-html": "^3.2.2",
+    "vitest": "^2.1.5"
   },
   "dependencies": {
     "@material/web": "^2.4.1",

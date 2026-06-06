@@ -449,7 +449,7 @@ function patch(type) {
     );
     process.stdout.on('data', onOutput);
     process.stderr.on('data', onOutput);
-    process.on('exit', (code) => {
+    process.on('exit', async (code) => {
         progress?.finish(code === 0);
         if (code === 0) {
             document.getElementById('reboot-fab').classList.remove('hide');
@@ -469,4 +469,4 @@ function patch(type) {
     });
 }
 
-export { getKpimgInfo, extractAndParseBootimg, getInstalledVersion, patch, embedKPM }
+export { getKpimgInfo, extractAndParseBootimg, getInstalledVersion, patch, embedKPM, parseIni }

@@ -14,11 +14,34 @@ get_prop() {
     grep "^${1}=" "$2" 2>/dev/null | head -1 | cut -d'=' -f2-
 }
 
+# Read the global Kpatch-Next config file. This is a simple KEY=VALUE
+# file; we only look at the keys we care about and treat anything else
+# as future work. The file may not exist on first-run / legacy installs;
+# defaults below are chosen to preserve pre-signature behavior.
+KPN_CONFIG="$KPNDIR/config"
+REQUIRE_KPM_SIGNATURES=0
+if [ -f "$KPN_CONFIG" ]; then
+    # Tolerate comments, blank lines, and `export ` prefixes.
+    _val=$(grep -E '^[[:space:]]*(export[[:space:]]+)?REQUIRE_KPM_SIGNATURES[[:space:]]*=' \
+        "$KPN_CONFIG" 2>/dev/null | tail -1 | sed -E 's/^[^=]*=//' | tr -d '"\r\n')
+    case "$_val" in
+        1|true|TRUE|yes|YES|on|ON) REQUIRE_KPM_SIGNATURES=1 ;;
+        *)                          REQUIRE_KPM_SIGNATURES=0 ;;
+    esac
+fi
+
+# Source the KPM signature verifier. It is a no-op cost when
+# REQUIRE_KPM_SIGNATURES=0 (we never call it below). The verifier
+# exposes `verify_kpm_sig <kpm> <sig>` which returns 0/1.
+# shellcheck disable=SC1091
+. "$MODDIR/kpm_verify.sh" 2>/dev/null || true
+
 # Rotate log on boot
 mkdir -p "$KPNDIR" "$KPM_DIR/failed" "$KPM_EVENT_DIR"
 echo "=== $(date) service.sh started ===" > "$LOG"
 echo "[$(date)] MODDIR=$MODDIR" >> "$LOG"
 echo "[$(date)] PATH=$PATH" >> "$LOG"
+echo "[$(date)] REQUIRE_KPM_SIGNATURES=$REQUIRE_KPM_SIGNATURES" >> "$LOG"
 
 # Detect root manager
 ROOT_MGR="unknown"
@@ -55,6 +78,11 @@ if ! kpatch hello >/dev/null 2>&1; then
 fi
 echo "[$(date)] kpatch hello OK" >> "$LOG"
 
+# Bootloop Auto-Recovery: healthy boot detected — reset the counter
+# and clear any auto-recovery markers so we don't trigger unpatch.
+echo "0" > "$KPNDIR/boot_count" 2>/dev/null
+rm -f "$KPNDIR/autorecovery_active" "$KPNDIR/auto_unpatch_requested"
+
 # Safe KPM load
 # Use a literal-glob test: when the directory is empty, the shell returns
 # the pattern itself unchanged. The [ -e ] check then correctly skips it,
@@ -72,6 +100,34 @@ for kpm in "$KPM_DIR"/*.kpm "$KPM_DIR"/*.ko "$KPM_DIR"/*.o; do
         raw_args="$(cat "$KPM_EVENT_DIR/${mod_basename}.args" 2>/dev/null || true)"
         args="$(printf '%s' "$raw_args" | tr -cd 'A-Za-z0-9_=,.+:/@% -')"
     fi
+
+    # --- KPM signature verification (opt-in) -------------------------------
+    # When REQUIRE_KPM_SIGNATURES=1, every .kpm/.ko/.o must have an
+    # accompanying .kpm.sig file containing a valid Ed25519 signature.
+    # Backward compat: if no .sig file exists, we log a warning and
+    # allow the load (existing unsigned modules keep working).
+    # Once a user is ready to go fully signed, the absence of a .sig
+    # file will cause a hard rejection.
+    _kpm_sig="$KPM_DIR/${mod_basename}.kpm.sig"
+    if [ "$REQUIRE_KPM_SIGNATURES" = "1" ]; then
+        if [ ! -f "$_kpm_sig" ]; then
+            # No .sig file present — log a warning but allow for now.
+            # TODO(security): in a future release, uncomment the
+            # quarantine block below to reject unsigned modules entirely.
+            # The intent is: deploy signed-only once enough modules
+            # ship .kpm.sig files.
+            echo "[$(date)] WARN: unsigned module (no .kpm.sig): $(basename "$kpm") — allowing (unsigned-allow grace period)" >> "$LOG"
+            # echo "[$(date)] REJECTED unsigned module: $(basename "$kpm"), moving to failed/" >> "$LOG"
+            # mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
+            # continue
+        elif ! verify_kpm_sig "$kpm" "$_kpm_sig"; then
+            echo "[$(date)] REJECTED (sig invalid): $(basename "$kpm"), moving to failed/" >> "$LOG"
+            mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
+            mv "$_kpm_sig" "$KPM_DIR/failed/$(basename "$_kpm_sig")" 2>/dev/null || true
+            continue
+        fi
+    fi
+
     if ! kpatch kpm load "$kpm" $args; then
         echo "[$(date)] Failed to load: $(basename "$kpm"), moving to failed/" >> "$LOG"
         mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
