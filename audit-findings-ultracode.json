@@ -1,0 +1,215 @@
+{
+  "audit_id": "ultracode-audit-2026-06-06",
+  "audit_date": "2026-06-06T10:38:41Z",
+  "scope": "v0.3.0-rc6 (commit b3ab634)",
+  "method": "multi-agent parallel scout + adversarial verification + independent manual review",
+  "p0_count": 7,
+  "p1_count": 9,
+  "p2_p3_count": "many (mixed into above fixes; inflight auditor also surfaced ~40 NEW-* items)",
+  "findings": [
+    {
+      "id": "UC-P0-1",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "KPM signing key is RFC 8032 Test 1 public key (private key is public)",
+      "file": "module/kpm_verify.sh",
+      "line": 54,
+      "exploit": "Anyone with the public RFC 8032 Test 1 private key (9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60) can forge a .kpm.sig that verify_kpm_sig accepts. Combined with service.sh's policy (off=load unsigned, warn=load with log, strict=reject), strict mode is the only safe default; but a malicious KPM signed with the well-known key is still considered 'verified' under any code path that calls verify_kpm_sig().",
+      "fix": "Generate a new Ed25519 keypair, replace the public half in KPM_SIGN_PUBKEY_HEX, update the probe vector in kpm_verify__require_openssl() to match, store the private key out-of-band (NOT in the repo).",
+      "fix_commit": "applied in audit-worktree",
+      "category": "cryptography"
+    },
+    {
+      "id": "UC-P0-2",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "Path traversal in install_kpm.sh via module.prop id field",
+      "file": "module/install_kpm.sh",
+      "line": 83,
+      "exploit": "Craft a KPM ZIP whose module.prop has id=../../system/xbin/foo. install_kpm.sh will write the .kpm to /data/adb/kp-next/kpm/../../system/xbin/foo.kpm (root-owned arbitrary file write). Even worse, the script then calls kpatch kpm load on the resulting path — enabling attacker-chosen code to run as root inside the patched kernel.",
+      "fix": "tr -cd allowlist on MOD_ID, MOD_NAME, MOD_VERSION, MOD_AUTHOR, MOD_EVENT; reject empty / '.' / '..' / >64 chars.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "path-traversal"
+    },
+    {
+      "id": "UC-P0-3",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "Shell injection via unsanitized remote.zipUrl in update-check.js",
+      "file": "webui/update-check.js",
+      "line": 170,
+      "exploit": "update.json is fetched from the network. If the zipUrl field is set to `https://x';rm -rf / #`, the resulting `exec(\"am start -a android.intent.action.VIEW -d https://x';rm -rf / #\")` is split by the shell into two commands, executing `rm -rf /` as root inside the WebView's kernelsu-alt exec bridge.",
+      "fix": "sanitizeUrl(remote.zipUrl) + escapeShell() wrapper. Reject any non-http(s) URL.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "command-injection"
+    },
+    {
+      "id": "UC-P0-4",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "EOF markers in exclude.js use Math.random (predictable heredoc escape)",
+      "file": "webui/page/exclude.js",
+      "line": "87, 363",
+      "exploit": "An attacker who can predict Date.now() within ~10ms and the 6-char base36 random suffix can craft CSV content that includes the EOF marker, then inject arbitrary shell commands after the heredoc closes. PR3 commit claimed this was fixed (replaced with randomUUID) but the actual code still uses Math.random.",
+      "fix": "Use crypto.getRandomValues(8 bytes) for the random portion of the EOF marker, independent of timestamp.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "command-injection"
+    },
+    {
+      "id": "UC-P0-5",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "XSS in kpm.js loadingCard via file.name in innerHTML",
+      "file": "webui/page/kpm.js",
+      "line": 608,
+      "exploit": "User-selected KPM zip with filename like `<img src=x onerror=alert(1)>.kpm` is injected as raw HTML into the WebUI DOM. The WebView is privileged (it can call kernelsu-alt exec), so a successful XSS chains into a root RCE.",
+      "fix": "Wrap file.name in escapeHTML() before interpolation.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "xss"
+    },
+    {
+      "id": "UC-P0-6",
+      "severity": "P0",
+      "confidence": "high",
+      "title": "Shell injection in constants.js linkRedirect()",
+      "file": "webui/constants.js",
+      "line": 23,
+      "exploit": "Same pattern as UC-P0-3: `exec(\\`am start -a android.intent.action.VIEW -d ${link}\\`)` where `link` is the first arg of linkRedirect(link). linkRedirect is called from various places in the WebUI including from any toast/getString parameter that flows through `msg_redirecting_to`. A malicious KPM name that contains shell metacharacters could flow into this path.",
+      "fix": "sanitizeUrl(link) + escapeShell() wrapper.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "command-injection"
+    },
+    {
+      "id": "UC-P0-7",
+      "severity": "P0",
+      "confidence": "medium",
+      "title": "Unquoted tmpPath in patch.js rm -f",
+      "file": "webui/page/patch.js",
+      "line": 348,
+      "exploit": "tmpPath is built from crypto.randomUUID() so it's not attacker-controlled in practice, but defence-in-depth: a name containing whitespace (e.g. `foo bar.kpm`) would word-split into two args to `rm`.",
+      "fix": "Wrap in escapeShell().",
+      "fix_commit": "applied in audit-worktree",
+      "category": "robustness"
+    },
+    {
+      "id": "UC-P1-1",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "Unquoted $args passed to kpatch kpm load in service.sh",
+      "file": "module/service.sh",
+      "line": 158,
+      "exploit": "$args is sanitized via `tr -cd 'A-Za-z0-9_=,.+:/@% -'` but still word-splits because unquoted. A args string with multiple spaces could be parsed as multiple args to kpatch kpm load. The -- separator fixes both issues.",
+      "fix": "kpatch kpm load \"$kpm\" -- \"$args\"",
+      "fix_commit": "applied in audit-worktree",
+      "category": "robustness"
+    },
+    {
+      "id": "UC-P1-2",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "Same as UC-P1-1 in install_kpm.sh",
+      "file": "module/install_kpm.sh",
+      "line": 192,
+      "exploit": "Same word-split issue at install time.",
+      "fix": "Same -- + quote fix.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "robustness"
+    },
+    {
+      "id": "UC-P1-3",
+      "severity": "P1",
+      "confidence": "medium",
+      "title": "Unquoted $KPNDIR in service.sh REHOOK cat",
+      "file": "module/service.sh",
+      "line": 7,
+      "exploit": "If $KPNDIR contains a space (custom layout), cat would error out. Doesn't lead to RCE in current paths but is brittle.",
+      "fix": "Quote $KPNDIR.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "robustness"
+    },
+    {
+      "id": "UC-P1-4",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "ROOT_MGR read from root_manager file without sanitization",
+      "file": "module/service.sh",
+      "line": 84,
+      "exploit": "If /data/adb/kp-next/root_manager is tampered with (e.g. via an earlier exploit), an unquoted expansion could affect later `case` statements or log lines.",
+      "fix": "tr -cd 'a-z' whitelist + fallback to 'unknown'.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "input-validation"
+    },
+    {
+      "id": "UC-P1-5",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "ZIP_FILE cli arg not validated",
+      "file": "module/install_kpm.sh",
+      "line": 43,
+      "exploit": "Calling `install_kpm.sh '/path/with; rm -rf /'` could split into multiple shell tokens before the script's own quote-handling kicks in.",
+      "fix": "Allowlist path characters at the entry point.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "input-validation"
+    },
+    {
+      "id": "UC-P1-6",
+      "severity": "P1",
+      "confidence": "medium",
+      "title": "post-fs-data.sh missing strict error handling + unsafe read",
+      "file": "module/post-fs-data.sh",
+      "line": 1-25,
+      "exploit": "No `set -e` means a corrupted boot_count could silently propagate. Cat-then-printf is fragile.",
+      "fix": "set -eu; use printf '%s' \"$(cat ...)\" pattern with head -c 6 truncation.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "robustness"
+    },
+    {
+      "id": "UC-P1-7",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "module.prop version stuck at v0.2.4 / versionCode 19",
+      "file": "module/module.prop",
+      "line": 3,
+      "exploit": "WebUI shows wrong version to user; update.json compare will be off by major; release will not match CHANGELOG.",
+      "fix": "Bump to v0.3.0-rc6 / 20.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "build"
+    },
+    {
+      "id": "UC-P1-8",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "update.json zipSha256 is 64 zero chars placeholder",
+      "file": "update.json",
+      "line": 6,
+      "exploit": "If release CI doesn't overwrite this, the WebUI downloader will accept any release zip (the all-zeros hash will never match a real file, but the update-check.js toast logic shows update_unsigned_warning only if zipSha256 is missing/empty — not all-zeros, so this could be missed).",
+      "fix": "Remove the placeholder field; rely on the toast + release-time check.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "supply-chain"
+    },
+    {
+      "id": "UC-P1-9",
+      "severity": "P1",
+      "confidence": "high",
+      "title": "CI workflows download kpimg/kptools/kpatch without SHA256 verification",
+      "file": ".github/workflows/build.yaml",
+      "line": 156-170, 282-294,
+      "exploit": "build.sh has the check (added in PR1), but the CI workflow's `gh release download` step does not. A compromised upstream release artifact would pass CI without detection and ship to all users.",
+      "fix": "Added 'Verify SHA256 of downloaded binaries' step in both arm64-test and build jobs.",
+      "fix_commit": "applied in audit-worktree",
+      "category": "supply-chain"
+    }
+  ],
+  "rejected_findings": [
+    {
+      "id": "PR3-claim",
+      "claim": "PR3 commit (fb957d8) fixed exclude.js EOF markers",
+      "reality": "exclude.js:87,363 still use Math.random + Date.now. Real fix in this audit (UC-P0-4)."
+    },
+    {
+      "id": "PR1-claim",
+      "claim": "PR1 (49a8023) fix P0-9 (zipSha256 placeholder)",
+      "reality": "update.json:6 still has the all-zeros placeholder; no real release-time injection mechanism. Real fix in this audit (UC-P1-8)."
+    }
+  ]
+}
