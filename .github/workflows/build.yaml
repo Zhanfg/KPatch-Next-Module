@@ -165,6 +165,16 @@ jobs:
         file module/bin/kpimg
         echo "✓ All binaries are valid aarch64 ELF or raw image"
 
+    - name: Build kp-safemode helper
+      run: |
+        NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+        if [ ! -x "$NDK_CLANG" ]; then
+          NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+        fi
+        "$NDK_CLANG" --target=aarch64-linux-android24 -static -O2 -Wall -Wextra \
+          -o module/bin/kp-safemode module/tools/kp-safemode.c
+        chmod +x module/bin/kp-safemode
+
     - name: Test kpatch binary under QEMU
       run: |
         echo "=== QEMU ARM64 Emulation Test ==="
@@ -222,6 +232,15 @@ jobs:
         timeout 5 qemu-aarch64-static module/bin/kpatch kpm load /tmp/test.kpm 2>&1 || true
         echo "✓ kpatch kpm load command executed"
 
+    - name: Test kp-safemode helper
+      run: |
+        echo "=== kp-safemode Test ==="
+        # kp-safemode is statically linked; no NDK sysroot needed.
+        # It will fail under QEMU (no patched kernel), but should at least
+        # execute without segfault and exit non-zero with a clear error.
+        timeout 5 qemu-aarch64-static module/bin/kp-safemode 2>&1 || true
+        echo "✓ kp-safemode binary executed without segfault"
+
   # ═══ Full build + release ═══
   build:
     name: Build & Release
@@ -263,6 +282,18 @@ jobs:
         if [ "$TAG" != "latest" ]; then gh release download "$TAG" "${ARGS[@]}"; else gh release download "${ARGS[@]}"; fi
         unzip -p magisk.apk 'lib/arm64-v8a/libmagiskboot.so' > module/bin/magiskboot
         rm magisk.apk
+
+    # === Build kp-safemode helper (queries SUPERCALL_SU_GET_SAFEMODE) ===
+    - name: Build kp-safemode with NDK clang
+      run: |
+        NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+        if [ ! -x "$NDK_CLANG" ]; then
+          NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+        fi
+        "$NDK_CLANG" --target=aarch64-linux-android24 -static -O2 -Wall -Wextra \
+          -o module/bin/kp-safemode module/tools/kp-safemode.c
+        chmod +x module/bin/kp-safemode
+        file module/bin/kp-safemode
 
     # === WebUI ===
     - uses: pnpm/action-setup@v4

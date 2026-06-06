@@ -114,4 +114,9 @@
     <string name="theme_auto">Segui sistema</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">Modalità sicura</string>
+    <string name="status_safemode_on">Attiva — SU e KPM bloccati</string>
+    <string name="status_safemode_off">Disattivata</string>
+    <string name="status_safemode_unknown">Sconosciuto (kp-safemode non installato)</string>
 </resources>

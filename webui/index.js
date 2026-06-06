@@ -122,6 +122,30 @@ function initRepoSettings() {
     const repoItem = document.getElementById('repository');
     const repoUrlDetail = document.getElementById('current-repo-url');
     const repoUrlDialog = document.getElementById('repo-url-dialog');
+    const safemodeDetail = document.getElementById('current-safemode');
+    const safemodeItem = document.getElementById('safemode');
+
+    // Query the safe-mode state via the kp-safemode helper. The helper
+    // exits 0 with stdout "0" or "1" on success. Anything else (binary
+    // missing, kernel not patched, no root) leaves the indicator in the
+    // "Unknown" state rather than throwing a toast.
+    if (safemodeItem) {
+        exec(`sh ${escapeShell(modDir + '/bin/kp-safemode')}`, {
+            env: { PATH: `${modDir}/bin` },
+        }).then((result) => {
+            if (safemodeDetail) {
+                if (result.errno === 0) {
+                    const v = result.stdout.trim();
+                    safemodeDetail.textContent = v === '1'
+                        ? getString('status_safemode_on')
+                        : getString('status_safemode_off');
+                    safemodeItem.classList.toggle('warning-card', v === '1');
+                } else {
+                    safemodeDetail.textContent = getString('status_safemode_unknown');
+                }
+            }
+        });
+    }
     const repoUrlInput = document.getElementById('repo-url-input');
 
     repoUrlDetail.textContent = repoModule.getRepoUrl();

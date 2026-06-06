@@ -114,4 +114,9 @@
     <string name="theme_auto">跟随系统</string>
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">安全模式</string>
+    <string name="status_safemode_on">已启用 — SU 和 KPM 已被阻止</string>
+    <string name="status_safemode_off">已关闭</string>
+    <string name="status_safemode_unknown">未知 (kp-safemode 未安装)</string>
 </resources>

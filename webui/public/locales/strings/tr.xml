@@ -114,4 +114,9 @@
     <string name="theme_auto">Sistemi takip et</string>
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">Güvenli Mod</string>
+    <string name="status_safemode_on">Etkin — SU ve KPM engellendi</string>
+    <string name="status_safemode_off">Kapalı</string>
+    <string name="status_safemode_unknown">Bilinmiyor (kp-safemode yüklü değil)</string>
 </resources>

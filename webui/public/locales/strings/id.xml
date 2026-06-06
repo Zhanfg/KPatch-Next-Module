@@ -114,4 +114,9 @@
     <string name="theme_auto">Ikuti sistem</string>
     <string name="theme_light">Terang</string>
     <string name="theme_dark">Gelap</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">Mode Aman</string>
+    <string name="status_safemode_on">Aktif — SU dan KPM diblokir</string>
+    <string name="status_safemode_off">Nonaktif</string>
+    <string name="status_safemode_unknown">Tidak diketahui (kp-safemode tidak terpasang)</string>
 </resources>

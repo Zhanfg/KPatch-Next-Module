@@ -44,6 +44,8 @@
 - New `KERNELPATCH_FORK_MAINTENANCE.md` documenting the relationship with the upstream `bmax121/KernelPatch` and how to sync.
 - WebUI: "What's New" changelog modal on first launch of a new version.
 - WebUI: theme toggle — light / dark / follow system (persists in localStorage).
+- WebUI: safe mode indicator — shows current KernelPatch safe-mode state (uses new
+  kp-safemode helper binary, cross-compiled with Android NDK in CI).
 - `module.bin` arm64 test workflow unchanged.
 
 #### Credits

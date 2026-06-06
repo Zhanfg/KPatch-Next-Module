@@ -160,6 +160,14 @@
             <div id="settings-page" class="page">
                 <div class="page-content">
                     <div class="list-group">
+                        <div class="list-item installed-only" id="safemode">
+                            <md-ripple></md-ripple>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-140 0-238-50t-162-138q-64-88-92-200T-40-680q0-83 16.5-159t46-137.5T82-1100q34-32 78-30.5t76 33.5l89 90q14 14 22 32.5t8 38.5v95q70 14 121 65t51 121q0 38-15 70t-40 56l160 160q23 23 23 57t-23 57q-23 23-57 23t-57-23L480-256l-37 38q-23 23-57 23t-57-23q-23-23-23-57t23-57l37-38q-25-24-40-56t-15-70q0-70 51-121t121-65v-95q0-20 8-38.5t22-32.5l89-90q32-32 76-33.5t78 30.5q33 32 59 76t46 94 30.5 110T860-680q0 116-28 228t-92 200q-64 88-162 138T480-80Zm0-80q106 0 184-39.5t130-110.5q52-71 79-168t27-202q0-71-14-138t-40-126.5-60-105.5L720-1010l-50 50 50 100-30 30-50-50-50 50v60h-40v-60l-50-50-50 50-30-30 50-100-50-50-66 64q-37 51-60 105.5T240-820q-14 67-14 138 0 105 27 202t79 168q52 71 130 110.5T480-160Zm-40-280h80q8 0 14-6t6-14q0-8-6-14t-14-6h-80q-8 0-14 6t-6 14q0 8 6 14t14 6Z" /></svg></md-icon>
+                            <div class="list-item-content">
+                                <div slot="headline" data-i18n="title_safemode">Safe Mode</div>
+                                <div slot="detail" id="current-safemode" data-i18n="status_safemode_unknown">Unknown</div>
+                            </div>
+                        </div>
                         <label class="list-item installed-only" id="rehook">
                             <md-ripple></md-ripple>
                             <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M440-120q-100 0-170-70t-70-170v-240l200 200-56 57-64-64v47q0 66 47 113t113 47q66 0 113-47t47-113v-127q-36-14-58-44.5T520-600q0-38 22-68.5t58-44.5v-167h80v167q36 14 58 44.5t22 68.5q0 38-22 69t-58 44v127q0 100-70 170t-170 70Zm200-440q17 0 28.5-11.5T680-600q0-17-11.5-28.5T640-640q-17 0-28.5 11.5T600-600q0 17 11.5 28.5T640-560Zm0-40Z"/></svg></md-icon>

@@ -28,10 +28,11 @@ function warn(msg) { warned++; console.log(`  ⚠ ${msg}`); }
 // ═══════════════════════════════════════════════
 
 const REQUIRED_BINARIES = [
-    { name: 'kpatch',     desc: 'User-space supercall tool', minSize: 1024 },
-    { name: 'kptools',    desc: 'Kernel patching tool',      minSize: 1024 },
-    { name: 'kpimg',      desc: 'KernelPatch kernel image',  minSize: 1024 },
-    { name: 'magiskboot', desc: 'Magisk boot image tool',    minSize: 1024 },
+    { name: 'kpatch',      desc: 'User-space supercall tool', minSize: 1024 },
+    { name: 'kptools',     desc: 'Kernel patching tool',      minSize: 1024 },
+    { name: 'kpimg',       desc: 'KernelPatch kernel image',  minSize: 1024 },
+    { name: 'magiskboot',  desc: 'Magisk boot image tool',    minSize: 1024 },
+    { name: 'kp-safemode', desc: 'Safe-mode query helper',    minSize: 4096, optional: true },
 ];
 
 function testBinaries() {
@@ -46,7 +47,11 @@ function testBinaries() {
     for (const bin of REQUIRED_BINARIES) {
         const filePath = path.join(binDir, bin.name);
         if (!fs.existsSync(filePath)) {
-            fail(`MISSING: ${bin.name} — ${bin.desc}`);
+            if (bin.optional) {
+                warn(`OPTIONAL MISSING: ${bin.name} — ${bin.desc} (only built in CI with NDK)`);
+            } else {
+                fail(`MISSING: ${bin.name} — ${bin.desc}`);
+            }
             continue;
         }
         const stats = fs.statSync(filePath);
@@ -55,10 +60,10 @@ function testBinaries() {
             continue;
         }
 
-        // Verify ELF header for arm64 binaries (kpatch, kptools only)
+        // Verify ELF header for arm64 binaries (kpatch, kptools, kp-safemode)
         // kpimg is a raw kernel image, not ELF
         // magiskboot is extracted from .so
-        if (bin.name === 'kpatch' || bin.name === 'kptools') {
+        if (bin.name === 'kpatch' || bin.name === 'kptools' || bin.name === 'kp-safemode') {
             const buf = Buffer.alloc(20);
             const fd = fs.openSync(filePath, 'r');
             fs.readSync(fd, buf, 0, 20, 0);

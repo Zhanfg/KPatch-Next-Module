@@ -114,4 +114,9 @@
     <string name="theme_auto">সিস্টেম অনুসরণ করুন</string>
     <string name="theme_light">হালকা</string>
     <string name="theme_dark">অন্ধকার</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">নিরাপদ মোড</string>
+    <string name="status_safemode_on">সক্রিয় — SU এবং KPMs ব্লক করা আছে</string>
+    <string name="status_safemode_off">বন্ধ</string>
+    <string name="status_safemode_unknown">অজানা (kp-safemode ইনস্টল নেই)</string>
 </resources>

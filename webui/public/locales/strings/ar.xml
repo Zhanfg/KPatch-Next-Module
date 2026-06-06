@@ -114,4 +114,9 @@
     <string name="theme_auto">اتبع النظام</string>
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">الوضع الآمن</string>
+    <string name="status_safemode_on">مفعّل — SU و KPMs محظورة</string>
+    <string name="status_safemode_off">معطل</string>
+    <string name="status_safemode_unknown">غير معروف (kp-safemode غير مثبت)</string>
 </resources>

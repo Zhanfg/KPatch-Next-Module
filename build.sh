@@ -77,6 +77,26 @@ if [[ ! -f "module/bin/magiskboot" ]]; then
     rm "$APK"
 fi
 
+# Build kp-safemode helper (queries SUPERCALL_SU_GET_SAFEMODE).
+# Cross-compile with Android NDK clang when available; skip on local builds
+# where the toolchain isn't installed (the WebUI handles missing-binary
+# gracefully).
+if [[ ! -f "module/bin/kp-safemode" && -n "$ANDROID_NDK_HOME" ]]; then
+    echo "Building kp-safemode with NDK clang..."
+    NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+    if [[ ! -x "$NDK_CLANG" ]]; then
+        # Fall back to the generic clang if the API-level-prefixed one is missing.
+        NDK_CLANG="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+    fi
+    if [[ -x "$NDK_CLANG" ]]; then
+        "$NDK_CLANG" -static -O2 -Wall -Wextra -o module/bin/kp-safemode module/tools/kp-safemode.c
+        chmod +x module/bin/kp-safemode
+        echo "✓ kp-safemode built"
+    else
+        echo "⚠ NDK clang not found at $NDK_CLANG; skipping kp-safemode"
+    fi
+fi
+
 # zip module
 commit_number=$(git rev-list --count HEAD)
 commit_hash=$(git rev-parse --short HEAD)

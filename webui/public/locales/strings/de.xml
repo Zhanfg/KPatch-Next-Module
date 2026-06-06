@@ -114,4 +114,9 @@
     <string name="theme_auto">System folgen</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">Abgesicherter Modus</string>
+    <string name="status_safemode_on">Aktiv — SU und KPMs blockiert</string>
+    <string name="status_safemode_off">Aus</string>
+    <string name="status_safemode_unknown">Unbekannt (kp-safemode nicht installiert)</string>
 </resources>

@@ -114,4 +114,9 @@
     <string name="theme_auto">システムに従う</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">セーフモード</string>
+    <string name="status_safemode_on">有効 — SU と KPM はブロック中</string>
+    <string name="status_safemode_off">オフ</string>
+    <string name="status_safemode_unknown">不明 (kp-safemode 未インストール)</string>
 </resources>

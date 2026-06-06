@@ -114,4 +114,9 @@
     <string name="theme_auto">Як у системі</string>
     <string name="theme_light">Світла</string>
     <string name="theme_dark">Темна</string>
+    <!-- Safe mode indicator -->
+    <string name="title_safemode">Безпечний режим</string>
+    <string name="status_safemode_on">Активний — SU та KPM заблоковано</string>
+    <string name="status_safemode_off">Вимкнено</string>
+    <string name="status_safemode_unknown">Невідомо (kp-safemode не встановлено)</string>
 </resources>

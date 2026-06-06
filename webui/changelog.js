@@ -30,6 +30,7 @@ const ENTRIES = [
             '⚡ kpm-next pinned to 0.13.5-2 (reproducible builds)',
             '✨ WebUI: "What\'s New" changelog modal on first launch of a new version',
             '✨ WebUI: theme toggle — light / dark / follow system',
+            '✨ WebUI: safe mode indicator (queries new kp-safemode helper)',
         ],
     },
 ];
