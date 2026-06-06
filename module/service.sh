@@ -18,20 +18,48 @@ get_prop() {
 # file; we only look at the keys we care about and treat anything else
 # as future work. The file may not exist on first-run / legacy installs;
 # defaults below are chosen to preserve pre-signature behavior.
+#
+# KPM_SIGNATURE_POLICY controls how unsigned / unverified KPM modules
+# are handled at boot. Three modes:
+#
+#   off    — Never check signatures. Unsigned modules load silently.
+#            This is the default; preserves pre-v0.3.0 behavior.
+#   warn   — Load unsigned modules but emit a visible warning to the
+#            service log and to the WebUI. Recommended for users who
+#            want to develop / embed their own KPMs without giving up
+#            the safety net of seeing which ones are unsigned.
+#   strict — Refuse to load any KPM that is not accompanied by a valid
+#            .kpm.sig file. Strictest; use only after all your KPMs
+#            are signed.
+#
+# The policy can be set in /data/adb/kp-next/config, e.g.:
+#     KPM_SIGNATURE_POLICY=warn
+# or toggled from the WebUI Settings page.
 KPN_CONFIG="$KPNDIR/config"
-REQUIRE_KPM_SIGNATURES=0
+KPM_SIGNATURE_POLICY=off
 if [ -f "$KPN_CONFIG" ]; then
     # Tolerate comments, blank lines, and `export ` prefixes.
-    _val=$(grep -E '^[[:space:]]*(export[[:space:]]+)?REQUIRE_KPM_SIGNATURES[[:space:]]*=' \
-        "$KPN_CONFIG" 2>/dev/null | tail -1 | sed -E 's/^[^=]*=//' | tr -d '"\r\n')
+    _val=$(grep -E '^[[:space:]]*(export[[:space:]]+)?KPM_SIGNATURE_POLICY[[:space:]]*=' \
+        "$KPN_CONFIG" 2>/dev/null | tail -1 | sed -E 's/^[^=]*=//' | tr -d '"\r\n' | tr 'A-Z' 'a-z')
     case "$_val" in
-        1|true|TRUE|yes|YES|on|ON) REQUIRE_KPM_SIGNATURES=1 ;;
-        *)                          REQUIRE_KPM_SIGNATURES=0 ;;
+        off|warn|strict) KPM_SIGNATURE_POLICY="$_val" ;;
+        0|false)         KPM_SIGNATURE_POLICY=off ;;
+        1|true|yes|on)   KPM_SIGNATURE_POLICY=strict ;;
+        *)               KPM_SIGNATURE_POLICY=off ;;
     esac
 fi
 
+# Map the policy to the legacy boolean expected by the existing logic,
+# and expose a third state.  All actual decisions are made on the
+# string policy below; the boolean is kept for logging only.
+case "$KPM_SIGNATURE_POLICY" in
+    off)    REQUIRE_KPM_SIGNATURES=0 ;;
+    warn|strict) REQUIRE_KPM_SIGNATURES=1 ;;
+    *)      REQUIRE_KPM_SIGNATURES=0 ;;
+esac
+
 # Source the KPM signature verifier. It is a no-op cost when
-# REQUIRE_KPM_SIGNATURES=0 (we never call it below). The verifier
+# KPM_SIGNATURE_POLICY=off (we never call it below). The verifier
 # exposes `verify_kpm_sig <kpm> <sig>` which returns 0/1.
 # shellcheck disable=SC1091
 . "$MODDIR/kpm_verify.sh" 2>/dev/null || true
@@ -41,7 +69,7 @@ mkdir -p "$KPNDIR" "$KPM_DIR/failed" "$KPM_EVENT_DIR"
 echo "=== $(date) service.sh started ===" > "$LOG"
 echo "[$(date)] MODDIR=$MODDIR" >> "$LOG"
 echo "[$(date)] PATH=$PATH" >> "$LOG"
-echo "[$(date)] REQUIRE_KPM_SIGNATURES=$REQUIRE_KPM_SIGNATURES" >> "$LOG"
+echo "[$(date)] KPM_SIGNATURE_POLICY=$KPM_SIGNATURE_POLICY" >> "$LOG"
 
 # Detect root manager
 ROOT_MGR="unknown"
@@ -101,25 +129,24 @@ for kpm in "$KPM_DIR"/*.kpm "$KPM_DIR"/*.ko "$KPM_DIR"/*.o; do
         args="$(printf '%s' "$raw_args" | tr -cd 'A-Za-z0-9_=,.+:/@% -')"
     fi
 
-    # --- KPM signature verification (opt-in) -------------------------------
-    # When REQUIRE_KPM_SIGNATURES=1, every .kpm/.ko/.o must have an
-    # accompanying .kpm.sig file containing a valid Ed25519 signature.
-    # Backward compat: if no .sig file exists, we log a warning and
-    # allow the load (existing unsigned modules keep working).
-    # Once a user is ready to go fully signed, the absence of a .sig
-    # file will cause a hard rejection.
+    # --- KPM signature verification (policy-controlled) --------------------
+    # off   → skip all checks, log nothing.
+    # warn  → allow unsigned, but log + flag for the WebUI.
+    # strict → reject unsigned / invalid.
     _kpm_sig="$KPM_DIR/${mod_basename}.kpm.sig"
-    if [ "$REQUIRE_KPM_SIGNATURES" = "1" ]; then
+    if [ "$KPM_SIGNATURE_POLICY" != "off" ]; then
         if [ ! -f "$_kpm_sig" ]; then
-            # No .sig file present — log a warning but allow for now.
-            # TODO(security): in a future release, uncomment the
-            # quarantine block below to reject unsigned modules entirely.
-            # The intent is: deploy signed-only once enough modules
-            # ship .kpm.sig files.
-            echo "[$(date)] WARN: unsigned module (no .kpm.sig): $(basename "$kpm") — allowing (unsigned-allow grace period)" >> "$LOG"
-            # echo "[$(date)] REJECTED unsigned module: $(basename "$kpm"), moving to failed/" >> "$LOG"
-            # mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
-            # continue
+            # No .kpm.sig file present.
+            if [ "$KPM_SIGNATURE_POLICY" = "strict" ]; then
+                echo "[$(date)] REJECTED (strict, unsigned): $(basename "$kpm"), moving to failed/" >> "$LOG"
+                mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"
+                continue
+            else
+                # warn mode — allow but flag it
+                echo "[$(date)] WARN (unsigned, policy=$KPM_SIGNATURE_POLICY): $(basename "$kpm") — loading anyway" >> "$LOG"
+                # Write a marker file so the WebUI can surface the warning.
+                echo "unsigned:$(basename "$kpm"):$(date +%s)" >> "$KPNDIR/unsigned_modules.log"
+            fi
         elif ! verify_kpm_sig "$kpm" "$_kpm_sig"; then
             echo "[$(date)] REJECTED (sig invalid): $(basename "$kpm"), moving to failed/" >> "$LOG"
             mv "$kpm" "$KPM_DIR/failed/$(basename "$kpm")"

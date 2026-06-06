@@ -151,6 +151,17 @@
     <string name="title_update_available">有可用更新</string>
     <string name="title_check_update">检查更新</string>
     <string name="update_new_version">新版本</string>
+    <!-- KPM 签名策略（设置页） -->
+    <string name="title_kpm_sig_policy">KPM 签名校验</string>
+    <string name="sig_policy_off">关闭 — 不检查，加载所有</string>
+    <string name="sig_policy_warn">警告 — 全部加载但标记未签名</string>
+    <string name="sig_policy_strict">严格 — 拒绝未签名的</string>
+    <string name="sig_policy_off_short">关闭</string>
+    <string name="sig_policy_warn_short">警告</string>
+    <string name="sig_policy_strict_short">严格</string>
+    <string name="title_unsigned_modules_warning">已加载未签名的 KPM</string>
+    <string name="unsigned_modules_count">%1$d 个模块未签名加载: %2$s。详见 /data/adb/kp-next/unsigned_modules.log</string>
+    <string name="toast_sig_policy_saved">签名策略已保存,重启后生效</string>
     <string name="update_current">当前已安装: %1</string>
     <string name="update_hint">KPatch-Next 有新版本可用。点击下载在浏览器中打开发布页面。</string>
     <string name="update_available">%1 可用</string>

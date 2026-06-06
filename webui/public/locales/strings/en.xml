@@ -152,6 +152,17 @@
     <string name="title_update_available">Update available</string>
     <string name="title_check_update">Check for updates</string>
     <string name="update_new_version">New version</string>
+    <!-- KPM signature policy (Settings page) -->
+    <string name="title_kpm_sig_policy">KPM signature check</string>
+    <string name="sig_policy_off">Off — load everything (no checks)</string>
+    <string name="sig_policy_warn">Warn — load everything, flag unsigned</string>
+    <string name="sig_policy_strict">Strict — reject unsigned</string>
+    <string name="sig_policy_off_short">Off</string>
+    <string name="sig_policy_warn_short">Warn</string>
+    <string name="sig_policy_strict_short">Strict</string>
+    <string name="title_unsigned_modules_warning">Unsigned KPM modules loaded</string>
+    <string name="unsigned_modules_count">%1$d module(s) loaded without a signature: %2$s. See /data/adb/kp-next/unsigned_modules.log</string>
+    <string name="toast_sig_policy_saved">Signature policy saved. Reboot to apply.</string>
     <string name="update_current">Currently installed: %1$s</string>
     <string name="update_hint">A new version of KPatch-Next is available. Tap Download to open the release page in your browser.</string>
     <string name="update_available">%1$s available</string>
