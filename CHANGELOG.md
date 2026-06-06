@@ -2,6 +2,27 @@
 
 ## Changelog
 
+### v0.3.0-rc7
+
+#### 🔀 Refactor
+- **KPM catalog split into standalone Kpm-Repo**: as of v0.3.0-rc7, the
+  anti-detect KPM suite is no longer built into the Kpatch-Next module.
+  Source files (`module/kpms/*.c`) have been moved to
+  [Zhanfg/Kpm-Repo](https://github.com/Zhanfg/Kpm-Repo) under
+  `modules/<id>/source.c` with paired `module.prop` files. The Kpm-Repo
+  project has its own build script, GitHub Actions release workflow,
+  signing infrastructure, and a README that explains how to fork,
+  customize, and distribute your own KPM repository.
+- **`DEFAULT_REPO_URL` updated** to point at the new Kpm-Repo:
+  `https://raw.githubusercontent.com/Zhanfg/Kpm-Repo/main/kpm_repo.json`
+- **`/data/adb/kp-next/repos.json` system override**: Kpatch-Next now
+  reads this file first (if it exists) as the canonical repo list. This
+  lets a Kpatch-Next fork ship a non-default default repo: drop a
+  `repos.json` at the module root and `customize.sh` will install it
+  on first boot.
+- **WebUI "Add Repository" flow** unchanged — users can still add
+  multiple forks as subscriptions.
+
 ### v0.3.0-rc6
 
 #### 🔒 Security (ultracode-audit 2026-06-06)

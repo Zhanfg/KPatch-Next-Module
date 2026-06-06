@@ -32,6 +32,20 @@ set_perm_recursive "$MODPATH/bin" 0 2000 0755 0755
 
 mkdir -p /data/adb/kp-next
 
+# Optional system-managed KPM repos override. If the maintainer ships
+# a file at $MODPATH/repos.json in their Kpatch-Next build, copy it
+# to /data/adb/kp-next/repos.json — the WebUI's Kpm-Repo page will
+# read this and use it as the canonical repo list instead of the
+# built-in default. Format:
+#   [ { "url": "https://...", "name": "..." }, ... ]
+# This is the cleanest way for a Kpatch-Next fork to ship a non-default
+# default repo (e.g. "always use Acme's Kpm-Repo instead of the
+# official one"). See https://github.com/Zhanfg/Kpm-Repo for details.
+if [ -f "$MODPATH/repos.json" ]; then
+    cp "$MODPATH/repos.json" /data/adb/kp-next/repos.json
+    ui_print "- Installed system repos.json"
+fi
+
 # Migrate package_config from APatch if present
 if [ -f "/data/adb/ap/package_config" ] && [ ! -f "/data/adb/kp-next/package_config" ]; then
     cp "/data/adb/ap/package_config" /data/adb/kp-next/package_config

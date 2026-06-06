@@ -4,8 +4,14 @@ import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
 import { escapeHTML, sanitizeUrl, formatSize } from '../utils.js';
 
-const DEFAULT_REPO_URL = 'https://raw.githubusercontent.com/Zhanfg/KPatch-Next-Module/main/kpm_repo.json';
+// Default KPM repository URL — points to the standalone Kpm-Repo on the
+// main branch. The Kpm-Repo is an independently-versioned project that
+// owns the KPM catalog (kpm_repo.json + per-module ZIPs). Forks of
+// Kpm-Repo are encouraged — users can add them as additional
+// subscriptions via the WebUI's "Add Repository" button.
+const DEFAULT_REPO_URL = 'https://raw.githubusercontent.com/Zhanfg/Kpm-Repo/main/kpm_repo.json';
 const REPOS_KEY = 'kp-next_repos';
+const SYSTEM_REPOS_PATH = '/data/adb/kp-next/repos.json';
 
 /**
  * Repo list shape in localStorage:
@@ -17,6 +23,25 @@ let allModules = [];
 let searchQuery = '';
 
 function getRepos() {
+    // System override: if /data/adb/kp-next/repos.json exists, it
+    // defines the canonical repo list. This is set by the module
+    // maintainer's customize.sh (or a root shell) and is meant for:
+    //   * Custom Kpatch-Next builds that ship a non-default default
+    //     repo (e.g. a maintainer who wants to point users at their
+    //     own Kpm-Repo fork).
+    //   * Sysadmins who pre-configure a fleet of devices with a fixed
+    //     repo catalog.
+    // The file format is the same as the localStorage value:
+    //   [{ "url": "https://...", "name": "..." }, ...]
+    // If the file is unreadable or malformed we silently fall through
+    // to the localStorage/default path.
+    try {
+        if (typeof window !== 'undefined' && window.__systemRepos) {
+            const sys = window.__systemRepos;
+            if (Array.isArray(sys) && sys.length > 0) return sys;
+        }
+    } catch (_) {}
+
     // Migrate the legacy single-URL key if present.
     const legacy = localStorage.getItem('kp-next_repo_url');
     if (legacy && !localStorage.getItem(REPOS_KEY)) {
@@ -30,6 +55,35 @@ function getRepos() {
     } catch (_) {}
     // First-run default.
     return [{ url: DEFAULT_REPO_URL, name: getString('repo_official') }];
+}
+
+/**
+ * Try to read /data/adb/kp-next/repos.json from the device. The file
+ * can be created by the maintainer's customize.sh or by an admin via
+ * `sh -c 'echo ... > /data/adb/kp-next/repos.json'`. We try the read
+ * once at module load (synchronously-blocking is fine — this is a
+ * single 100-byte file) and cache the result in window.__systemRepos.
+ *
+ * If the file is missing, unreadable, or doesn't parse as JSON, we
+ * leave window.__systemRepos undefined and getRepos() falls through
+ * to the localStorage path.
+ */
+async function loadSystemRepos() {
+    try {
+        const r = await exec(
+            `cat ${SYSTEM_REPOS_PATH} 2>/dev/null`,
+            { env: { PATH: `${modDir}/bin:$PATH` } }
+        );
+        if (!r || r.errno !== 0 || !r.stdout) return;
+        const trimmed = r.stdout.trim();
+        if (!trimmed) return;
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            window.__systemRepos = parsed;
+        }
+    } catch (_) {
+        // Malformed JSON, missing file, no permission — all non-fatal.
+    }
 }
 
 function setRepos(repos) {
@@ -332,6 +386,13 @@ function openRepoManager() {
 }
 
 export function initRepoPage() {
+    // Load the system-managed repo override once at init. We don't
+    // await — getRepos() handles the missing/empty case gracefully
+    // (falls through to localStorage, then to the built-in default).
+    // Subsequent getRepos() calls within the same WebView session
+    // will pick up window.__systemRepos.
+    loadSystemRepos();
+
     const searchBtn = document.getElementById('repo-search-btn');
     const searchBar = document.getElementById('repo-search-bar');
     const closeBtn = document.getElementById('close-repo-search-btn');

@@ -4,3 +4,6 @@
 /out
 *.zip
 .DS_Store
+.audit/
+webui/.gstack/
+webui/screenshots/
