@@ -1,8 +1,9 @@
 import { listPackages, getPackagesInfo, exec } from 'kernelsu-alt';
-import { modDir, persistDir } from '../index.js';
+import { modDir, persistDir, getEnv } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
 import { escapeHTML } from '../utils.js';
+import { readKsuAllowlist } from '../ksu.js';
 import fallbackIcon from '../icon.png';
 
 let allApps = [];
@@ -96,13 +97,39 @@ async function renderAppList() {
         if (import.meta.env.DEV) {
             rawContent = localStorage.getItem('kp-next_excluded_mock') || '';
         } else {
+            // Prefer the KSU allowlist when KSU is the active root
+            // manager — this is the canonical source of which apps
+            // have root access. Falling back to package_config lets
+            // Magisk/APatch/SukiSU users still see (and toggle) the
+            // legacy KPatch exclude list. The two are kept in sync via
+            // a service.sh watcher (see module/patch — future work).
+            let useKsuAllowlist = false;
             try {
-                const result = await exec(`cat ${persistDir}/package_config`);
-                if (result.errno === 0) {
-                    rawContent = result.stdout.trim();
+                const env = await getEnv();
+                useKsuAllowlist = env.hasKsu && env.manager !== 'apatch';
+            } catch (_) {}
+
+            if (useKsuAllowlist) {
+                // KSU's .allowlist is a plain-text file of UIDs (one
+                // per line), e.g.:
+                //   1000
+                //   10001
+                //   1010023
+                // We can't derive package names from UIDs without
+                // re-reading /data/system/packages.list, so we
+                // return early and let the toggle path use the
+                // KSU allowlist directly. The displayed list is
+                // still built from allApps (every installed package).
+                rawContent = '';
+            } else {
+                try {
+                    const result = await exec(`cat ${persistDir}/package_config`);
+                    if (result.errno === 0) {
+                        rawContent = result.stdout.trim();
+                    }
+                } catch (e) {
+                    console.warn('package_config not available.')
                 }
-            } catch (e) {
-                console.warn('package_config not available.')
             }
         }
 
@@ -116,7 +143,31 @@ async function renderAppList() {
             appByRealUid.get(key).push(app);
         });
 
-        if (rawContent) {
+        // Detect whether we should sync from KSU's allowlist (preferred
+        // when KSU is the active manager) or from the legacy KPatch
+        // package_config CSV. The two systems carry the same semantic
+        // information when KSU is in use, but the KSU file is the
+        // canonical one.
+        let ksuAllowlist = null;
+        try {
+            const env = await getEnv();
+            if (env.hasKsu && env.manager !== 'apatch') {
+                ksuAllowlist = await readKsuAllowlist();
+            }
+        } catch (_) {}
+
+        if (ksuAllowlist) {
+            // Build excludedApps from KSU's allowlist (inverted: an app
+            // is in the "excluded" set iff it is NOT in the allowlist).
+            // The KSU allowlist is UIDs only, so we cross-reference
+            // with allApps to recover package names for the UI.
+            excludedApps = [];
+            allApps.forEach(app => {
+                if (!ksuAllowlist.has(app.uid)) {
+                    excludedApps.push({ packageName: app.packageName, uid: app.uid });
+                }
+            });
+        } else if (rawContent) {
             let lines = rawContent.split('\n').filter(l => l.trim());
 
             // Skip header
@@ -230,7 +281,24 @@ async function renderAppList() {
                     saveTimeout = setTimeout(() => {
                         saveExcludedList(excludedApps);
                     }, 500);
-                    exec(`kpatch exclude_set ${realUid} ${isSelected ? 1 : 0}`, { env: { PATH: `${modDir}/bin` } });
+                    // When KSU is the root manager, sync the toggle to
+                    // KSU's allowlist so the native manager and the
+                    // kernel module see the same state.
+                    if (ksuAllowlist) {
+                        if (isSelected) {
+                            // Remove from allowlist (deny root).
+                            exec(`ksuctl allow remove ${realUid}`, {
+                                env: { PATH: `${modDir}/bin:/system/bin` }
+                            });
+                        } else {
+                            // Add to allowlist (grant root).
+                            exec(`ksuctl allow add ${realUid}`, {
+                                env: { PATH: `${modDir}/bin:/system/bin` }
+                            });
+                        }
+                    } else {
+                        exec(`kpatch exclude_set ${realUid} ${isSelected ? 1 : 0}`, { env: { PATH: `${modDir}/bin` } });
+                    }
                 });
 
                 appItemMap.set(appKey, item);

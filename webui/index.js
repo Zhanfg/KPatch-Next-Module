@@ -28,9 +28,13 @@ import * as repoModule from './page/kpm_repo.js';
 import { maybeShowChangelog } from './changelog.js';
 import { initThemeSettings } from './theme.js';
 import { maybeNotifyUpdate, checkForUpdates } from './update-check.js';
+import { detectEnvironment, resetEnvironment } from './ksu.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
+// KSU environment — lazily initialized in init(), available to pages.
+let _env = null;
+export async function getEnv() { if (!_env) _env = await detectEnvironment(); return _env; }
 
 async function updateStatus() {
     const version = await patchModule.getInstalledVersion();
@@ -63,6 +67,31 @@ export async function initInfo() {
     document.getElementById('system').textContent = info[1] || fallback;
     document.getElementById('fingerprint').textContent = info[2] || fallback;
     document.getElementById('selinux').textContent = info[3] || fallback;
+
+    // Populate KSU/manager info on the home card. This is non-blocking;
+    // if the detection fails the row just stays hidden.
+    try {
+        const env = await getEnv();
+        const ksuEl = document.getElementById('ksu-info');
+        if (ksuEl) {
+            const parts = [];
+            if (env.hasKsu && env.ksuVersion) {
+                parts.push(`KSU ${env.ksuVersion}`);
+            }
+            if (env.managerPackage) {
+                parts.push(env.managerPackage);
+            }
+            if (env.manager !== 'unknown') {
+                parts.push(env.manager);
+            }
+            if (parts.length > 0) {
+                ksuEl.textContent = parts.join(' · ');
+                ksuEl.closest('.info')?.classList.remove('hidden');
+            } else {
+                ksuEl.closest('.info')?.classList.add('hidden');
+            }
+        }
+    } catch (_) {}
 }
 
 async function reboot(reason = "") {

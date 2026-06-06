@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">保存されたプロファイルはありません</string>
     <string name="msg_profile_saved">プロファイル「%1」を保存しました</string>
     <string name="msg_profile_loaded">プロファイル「%1」を適用しました</string>
+    <string name="info_root_manager">ルートマネージャー</string>
+    <string name="title_module_config">モジュール設定</string>
+    <string name="label_config_key">設定キー</string>
+    <string name="label_config_value">設定値</string>
+    <string name="button_save_config">設定を保存</string>
+    <string name="button_open_in_ksu">KSU マネージャで開く</string>
+    <string name="msg_module_disabled">マネージャでモジュールが無効</string>
 </resources>

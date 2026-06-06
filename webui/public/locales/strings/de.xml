@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">Keine gespeicherten Profile</string>
     <string name="msg_profile_saved">Profil "%1" gespeichert</string>
     <string name="msg_profile_loaded">Profil "%1" angewendet</string>
+    <string name="info_root_manager">Root-Manager</string>
+    <string name="title_module_config">Modul-Konfiguration</string>
+    <string name="label_config_key">Konfig-Schlüssel</string>
+    <string name="label_config_value">Konfig-Wert</string>
+    <string name="button_save_config">Konfig speichern</string>
+    <string name="button_open_in_ksu">Im KSU-Manager öffnen</string>
+    <string name="msg_module_disabled">Modul ist im Manager deaktiviert</string>
 </resources>

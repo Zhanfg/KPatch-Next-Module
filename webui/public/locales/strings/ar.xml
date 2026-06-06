@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">لا توجد ملفات شخصية محفوظة</string>
     <string name="msg_profile_saved">تم حفظ الملف الشخصي "%1"</string>
     <string name="msg_profile_loaded">تم تطبيق الملف الشخصي "%1"</string>
+    <string name="info_root_manager">مدير الجذر</string>
+    <string name="title_module_config">تهيئة الوحدة</string>
+    <string name="label_config_key">مفتاح التهيئة</string>
+    <string name="label_config_value">قيمة التهيئة</string>
+    <string name="button_save_config">حفظ التهيئة</string>
+    <string name="button_open_in_ksu">افتح في مدير KSU</string>
+    <string name="msg_module_disabled">الوحدة معطلة في المدير</string>
 </resources>

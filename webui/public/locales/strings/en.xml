@@ -55,6 +55,13 @@
     <string name="info_system_version">System version</string>
     <string name="info_fingerprint">Fingerprint</string>
     <string name="info_selinux_status">SELinux status</string>
+    <string name="info_root_manager">Root manager</string>
+    <string name="title_module_config">Module config</string>
+    <string name="label_config_key">Config key</string>
+    <string name="label_config_value">Config value</string>
+    <string name="button_save_config">Save config</string>
+    <string name="button_open_in_ksu">Open in KSU Manager</string>
+    <string name="msg_module_disabled">Module is disabled in the manager</string>
     <string name="info_version">Version: %1$s</string>
     <string name="info_time">Time: %1$s</string>
     <string name="info_config">Config: %1$s</string>

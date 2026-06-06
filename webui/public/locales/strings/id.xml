@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">Tidak ada profil tersimpan</string>
     <string name="msg_profile_saved">Profil "%1" disimpan</string>
     <string name="msg_profile_loaded">Profil "%1" diterapkan</string>
+    <string name="info_root_manager">Manajer root</string>
+    <string name="title_module_config">Konfigurasi modul</string>
+    <string name="label_config_key">Kunci konfigurasi</string>
+    <string name="label_config_value">Nilai konfigurasi</string>
+    <string name="button_save_config">Simpan konfigurasi</string>
+    <string name="button_open_in_ksu">Buka di Manajer KSU</string>
+    <string name="msg_module_disabled">Modul dinonaktifkan di manajer</string>
 </resources>

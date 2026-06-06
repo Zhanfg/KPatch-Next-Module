@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">কোনো সংরক্ষিত প্রোফাইল নেই</string>
     <string name="msg_profile_saved">প্রোফাইল "%1" সংরক্ষিত</string>
     <string name="msg_profile_loaded">প্রোফাইল "%1" প্রয়োগ করা হয়েছে</string>
+    <string name="info_root_manager">রুট ম্যানেজার</string>
+    <string name="title_module_config">মডিউল কনফিগ</string>
+    <string name="label_config_key">কনফিগ কী</string>
+    <string name="label_config_value">কনফিগ মান</string>
+    <string name="button_save_config">কনফিগ সংরক্ষণ</string>
+    <string name="button_open_in_ksu">KSU ম্যানেজারে খুলুন</string>
+    <string name="msg_module_disabled">ম্যানেজারে মডিউল নিষ্ক্রিয় করা হয়েছে</string>
 </resources>

@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">沒有已儲存的預設</string>
     <string name="msg_profile_saved">預設「%1」已儲存</string>
     <string name="msg_profile_loaded">預設「%1」已套用</string>
+    <string name="info_root_manager">Root 管理器</string>
+    <string name="title_module_config">模組配置</string>
+    <string name="label_config_key">配置鍵</string>
+    <string name="label_config_value">配置值</string>
+    <string name="button_save_config">儲存配置</string>
+    <string name="button_open_in_ksu">在 KSU 管理員中開啟</string>
+    <string name="msg_module_disabled">模組在管理員中已停用</string>
 </resources>

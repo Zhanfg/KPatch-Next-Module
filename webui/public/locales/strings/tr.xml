@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">Kayıtlı profil yok</string>
     <string name="msg_profile_saved">Profil "%1" kaydedildi</string>
     <string name="msg_profile_loaded">Profil "%1" uygulandı</string>
+    <string name="info_root_manager">Root yöneticisi</string>
+    <string name="title_module_config">Modül yapılandırması</string>
+    <string name="label_config_key">Yapılandırma anahtarı</string>
+    <string name="label_config_value">Yapılandırma değeri</string>
+    <string name="button_save_config">Yapılandırmayı kaydet</string>
+    <string name="button_open_in_ksu">KSU Yöneticisinde aç</string>
+    <string name="msg_module_disabled">Yöneticide modül devre dışı</string>
 </resources>

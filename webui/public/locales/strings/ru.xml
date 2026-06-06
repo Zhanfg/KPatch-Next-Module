@@ -189,4 +189,11 @@
     <string name="msg_no_profiles">Нет сохранённых профилей</string>
     <string name="msg_profile_saved">Профиль «%1» сохранён</string>
     <string name="msg_profile_loaded">Профиль «%1» применён</string>
+    <string name="info_root_manager">Root-менеджер</string>
+    <string name="title_module_config">Конфигурация модуля</string>
+    <string name="label_config_key">Ключ конфигурации</string>
+    <string name="label_config_value">Значение</string>
+    <string name="button_save_config">Сохранить</string>
+    <string name="button_open_in_ksu">Открыть в KSU Manager</string>
+    <string name="msg_module_disabled">Модуль отключён в менеджере</string>
 </resources>
