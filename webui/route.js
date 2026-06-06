@@ -2,6 +2,7 @@ import * as patchModule from './page/patch.js';
 import * as logModule from './page/log.js';
 import * as backupModule from './page/backup.js';
 import * as repoModule from './page/kpm_repo.js';
+import * as stealthModule from './page/stealth.js';
 import { getString } from './language.js';
 
 const backBtn = document.getElementById('back-btn');
@@ -96,6 +97,11 @@ function navigateToRepository() {
     repoModule.fetchRepo();
 }
 
+function navigateToStealth() {
+    switchPage('stealth-page', getString('title_stealth'), 'stealth');
+    stealthModule.refreshStealthList();
+}
+
 function navigateToPatch() {
     preparePatchUI(getString('title_patch'), false);
     patchModule.getKpimgInfo();
@@ -123,7 +129,13 @@ export function setupRoute() {
 
     document.querySelectorAll('.bottom-bar-item').forEach(item => {
         item.addEventListener('click', () => {
-            const routes = { home: navigateToHome, KPM: navigateToKPM, exclude: navigateToExclude, settings: navigateToSettings };
+            const routes = {
+                home: navigateToHome,
+                KPM: navigateToKPM,
+                exclude: navigateToExclude,
+                settings: navigateToSettings,
+                stealth: navigateToStealth,
+            };
             routes[item.id]?.();
         });
     });

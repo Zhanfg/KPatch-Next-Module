@@ -6,6 +6,13 @@
     <string name="title_kpmodule">KPModule</string>
     <string name="title_exclude">排除</string>
     <string name="title_settings">设置</string>
+    <string name="title_stealth">隐匿</string>
+    <string name="title_stealth_center">隐匿中心</string>
+    <string name="subtitle_stealth_center">逐个开关 KernelPatch 模块，隐藏应用扫描器检测到的 Root/钩子信号。重启后生效。</string>
+    <string name="msg_no_stealth_modules">尚未安装隐匿模块。请前往仓库页下载。</string>
+    <string name="stealth_hint_reboot">重启后生效</string>
+    <string name="toast_stealth_enabled">%1$s 已启用。重启后生效。</string>
+    <string name="toast_stealth_disabled">%1$s 已禁用。重启后生效。</string>
     <string name="title_home">首页</string>
     <string name="title_language">语言</string>
     <string name="title_control_kpmodule">控制 KPModule</string>

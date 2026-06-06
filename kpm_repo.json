@@ -1,6 +1,7 @@
 {
-  "name": "KPM Community Repository",
-  "description": "Community-maintained KPM module repository",
+  "name": "KPatch-Next Community KPM Repository",
+  "description": "Community-maintained KPM modules including anti-detection suite",
+  "version": "0.3.0",
   "modules": [
     {
       "id": "selinux_hook",
@@ -23,6 +24,90 @@
       "minKpVersion": "0.13.2",
       "size": 209288,
       "signatureRequired": true
+    },
+    {
+      "id": "stealth-proc-maps",
+      "name": "Stealth: proc-maps-hide",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Hide KPM/root paths from /proc/*/maps and /proc/*/smaps. Defeats the Duck Detector Memory card by removing hook-like executable mappings and loader artifacts from process memory listings.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-proc-maps-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 8192,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["Memory"],
+      "tags": ["stealth", "anti-detect", "memory"]
+    },
+    {
+      "id": "stealth-mount-hide",
+      "name": "Stealth: mount-hide",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Hide Magisk/KSU/APatch mount points from /proc/mounts, /proc/self/mountinfo, and /proc/self/mountstats. Defeats the Duck Detector Mount card by removing root-related mount entries.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-mount-hide-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 7168,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["Mount"],
+      "tags": ["stealth", "anti-detect", "mount"]
+    },
+    {
+      "id": "stealth-selinux-faker",
+      "name": "Stealth: selinux-context-faker",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Report normal SELinux context to apps via /proc/self/attr/current and /sys/fs/selinux/enforce. Hides root process labels from apps that probe SELinux status.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-selinux-faker-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 6144,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["SELinux"],
+      "tags": ["stealth", "anti-detect", "selinux"]
+    },
+    {
+      "id": "stealth-boot-spoofer",
+      "name": "Stealth: boot-state-spoofer",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Report locked/green bootloader state to user-space. Rewrites androidboot.verifiedbootstate and ro.boot.vbmeta.digest so apps see a 'locked' device even when the bootloader is unlocked.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-boot-spoofer-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 5120,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["Bootloader", "Play Integrity Fix"],
+      "tags": ["stealth", "anti-detect", "bootloader"]
+    },
+    {
+      "id": "stealth-module-hider",
+      "name": "Stealth: module-name-hider",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Replace KP/Magisk/KSU module names in /proc/modules with generic driver names (snd_timer, uvcvideo, wlan, etc.). Defeats the Native Root card by making root modules look like normal kernel drivers.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-module-hider-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 5120,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["Native Root", "Kernel Check"],
+      "tags": ["stealth", "anti-detect", "modules"]
+    },
+    {
+      "id": "stealth-linker-redact",
+      "name": "Stealth: linker-redaction",
+      "version": "1.0.0",
+      "author": "kpatch",
+      "description": "Stricter /proc/*/maps filter that drops anonymous executable regions with inode=0. Defeats loader-runtime-artifact detection when proc-maps-hide alone isn't enough.",
+      "downloadUrl": "https://github.com/Zhanfg/KPatch-Next-Module/releases/download/v0.3.0/stealth-linker-redact-1.0.0.kpm",
+      "minKpVersion": "0.13.5",
+      "size": 6144,
+      "signatureRequired": true,
+      "category": "anti-detect",
+      "targets": ["Memory", "Native Root"],
+      "tags": ["stealth", "anti-detect", "memory", "strict"]
     }
   ]
 }

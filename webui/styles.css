@@ -939,6 +939,63 @@ md-menu-item label {
     align-self: flex-start;
 }
 
+.tag-stealth-on {
+    background: #1b5e20;
+    color: #c8e6c9;
+    font-size: 0.72em;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    align-self: flex-start;
+    letter-spacing: 0.04em;
+}
+
+.tag-stealth-off {
+    background: #424242;
+    color: #bdbdbd;
+    font-size: 0.72em;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    align-self: flex-start;
+    letter-spacing: 0.04em;
+}
+
+.stealth-card .module-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 0;
+}
+
+.stealth-hint {
+    color: var(--md-sys-color-on-surface-variant, #555);
+    font-size: 0.85rem;
+    flex: 1;
+}
+
+.page-header {
+    padding: 24px 16px 8px;
+}
+
+.page-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface, #000);
+}
+
+.page-subtitle {
+    margin: 0;
+    color: var(--md-sys-color-on-surface-variant, #555);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.stealth-list {
+    padding: 0 16px 24px;
+}
+
 .profile-list {
     display: flex;
     flex-direction: column;

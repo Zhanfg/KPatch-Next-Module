@@ -6,6 +6,13 @@
     <string name="title_kpmodule">KPModule</string>
     <string name="title_exclude">Exclude</string>
     <string name="title_settings">Settings</string>
+    <string name="title_stealth">Stealth</string>
+    <string name="title_stealth_center">Stealth Center</string>
+    <string name="subtitle_stealth_center">Toggle each KernelPatch module to hide root/hook signals from app scanners. Changes apply on next boot.</string>
+    <string name="msg_no_stealth_modules">No stealth modules installed. Install from the Repository tab.</string>
+    <string name="stealth_hint_reboot">Takes effect on next boot</string>
+    <string name="toast_stealth_enabled">%1$s enabled. Reboot to apply.</string>
+    <string name="toast_stealth_disabled">%1$s disabled. Reboot to apply.</string>
     <string name="title_home">Home</string>
     <string name="title_language">Language</string>
     <string name="title_control_kpmodule">Control KPModule</string>
