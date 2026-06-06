@@ -1,9 +1,25 @@
 import '@material/web/all.js';
 import { applyStoredTheme } from './theme.js';
+import { detectEnvironment, resetEnvironment } from './ksu.js';
 
 // Apply theme as early as possible — before any UI renders — so the user
 // doesn't see a flash of the wrong color.
 applyStoredTheme();
+
+// Enable edge-to-edge as soon as the KSU module is loaded. This must run
+// early (before the splash dismisses) so the WebView resizes its viewport
+// in one frame rather than two. Supported since KSU v3.0.0-115 — older
+// managers will silently reject the request (returns false), which is fine.
+(async () => {
+    try {
+        const { enableEdgeToEdge } = await import('kernelsu-alt');
+        if (typeof enableEdgeToEdge === 'function') {
+            await enableEdgeToEdge(true);
+        }
+    } catch (_) {
+        // kernelsu-alt not loaded (e.g. dev preview) — non-fatal.
+    }
+})();
 
 let exec, toast;
 try {
@@ -28,7 +44,6 @@ import * as repoModule from './page/kpm_repo.js';
 import { maybeShowChangelog } from './changelog.js';
 import { initThemeSettings } from './theme.js';
 import { maybeNotifyUpdate, checkForUpdates } from './update-check.js';
-import { detectEnvironment, resetEnvironment } from './ksu.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
@@ -99,6 +114,49 @@ async function reboot(reason = "") {
         await exec("/system/bin/input keyevent 26");
     }
     exec(`/system/bin/svc power reboot ${reason} || /system/bin/reboot ${reason}`);
+}
+
+/**
+ * KSU integration: enables the "Open in KSU Manager" Settings item
+ * (which deep-links to the module's detail page) and wires the
+ * module config dialog. Only shown when a supported KSU manager is
+ * detected.
+ */
+function initKsuIntegration() {
+    const item = document.getElementById('open-in-ksu');
+    const detail = document.getElementById('open-in-ksu-detail');
+    if (!item) return;
+
+    (async () => {
+        const env = await getEnv();
+        // Only show the item when we actually have a KSU manager
+        // (not Magisk, not unknown).
+        if (!env.hasKsu || !env.managerPackage) {
+            item.classList.add('hidden');
+            return;
+        }
+        item.classList.remove('hidden');
+        if (detail) {
+            detail.textContent = env.managerPackage;
+        }
+        item.onclick = () => {
+            // Deep link to the module's detail page in the KSU
+            // manager. The intent format is: am start -a
+            // android.intent.action.VIEW -d
+            // kernelsu://module/<module-id>
+            // The manager package provides the activity.
+            const moduleId = 'KPatch-Next';
+            exec(
+                `am start -a android.intent.action.VIEW -d kernelsu://module/${moduleId} -p ${env.managerPackage}`,
+                { env: { PATH: '/system/bin' } }
+            ).then(({ errno, stderr }) => {
+                if (errno !== 0) {
+                    toast(getString('msg_repo_fetch_failed'));
+                    console.warn('open-in-ksu failed:', stderr);
+                }
+            });
+        };
+    })();
 }
 
 async function initRehook() {
@@ -279,6 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initRepoSettings();
     initThemeSettings();
     initUpdateCheck();
+    initKsuIntegration();
 
     if (splash) {
         setTimeout(() => splash.classList.add('exit'), 50);
