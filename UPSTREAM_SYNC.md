@@ -45,6 +45,113 @@ optstr = "hvpurdfli:k:o:a:M:E:T:N:V:A:"
 
 **结论: 任务 E3 (kptools -s 移植) 关闭 — 不适用。**
 
+---
+
+## `hook.c` inlinehook 重构 — patch 准备就绪,等真机测试
+
+上游 dev `bmax121/KernelPatch` 的 `kernel/base/hook.c` 有 `inlinehook` 重构(+68/-55, 794→816 行)。改动是渐进的,可以 cherry-pick,**但需要 3 个内核版本(4.14/5.10/6.1+)真机测试才能合并到生产 fork**。本仓库无交叉编译器,所以没有直接 port 到我们的 fork。
+
+### 改动清单
+
+**`kernel/include/hook.h`** — 宏重命名:
+
+```diff
+-#define TRAMPOLINE_MAX_NUM 6
+-#define RELOCATE_INST_NUM (4 * 8 + 8 - 4)
++#define TRAMPOLINE_NUM 4
++#define RELOCATE_INST_NUM (TRAMPOLINE_NUM * 8 + 8)
+ 
+ ...
+ 
+-#define ARM64_PACIASP 0xd503233f
+-#define ARM64_PACIBSP 0xd503237f
+ ...
+-    uint32_t origin_insts[TRAMPOLINE_MAX_NUM] __attribute__((aligned(8)));
+-    uint32_t tramp_insts[TRAMPOLINE_MAX_NUM] __attribute__((aligned(8)));
++    uint32_t origin_insts[TRAMPOLINE_NUM] __attribute__((aligned(8)));
++    uint32_t tramp_insts[TRAMPOLINE_NUM] __attribute__((aligned(8)));
+```
+
+**`kernel/base/hook.c`** — 5 处改动:
+
+1. **Include 顺序** — `io.h` / `symbol.h` 改成前移到 `cache.h` 之后:
+   ```diff
+   -#include <io.h>
+   -#include <symbol.h>
+   +#include <cache.h>
+    ...
+   -#include <hotpatch.h>
+   +#include <io.h>
+   +#include <symbol.h>
+   ```
+
+2. **BTI/PAC 检查简化** (line 121):
+   ```diff
+   -    } else if (inst == ARM64_BTI_C || inst == ARM64_BTI_J ||
+   -               (inst == ARM64_BTI_JC && !hook_get_mem_from_origin(addr))) {
+   +    } else if (inst == ARM64_BTI_C || inst == ARM64_BTI_J || inst == ARM64_BTI_JC) {
+   ```
+
+3. **移除 `current_inline_hook_chain()` 宏** (line 346-351) — 改用 `adr` + NOP 反扫。
+
+4. **4 个 `current_inline_hook_chain()` 调用点替换为**(line 354-355, 383-384, 418-419, 459-460):
+   ```diff
+   -    hook_chain_t *hook_chain = current_inline_hook_chain();
+   -    if (!hook_chain) return 0;
+   +    uint64_t this_va;
+   +    asm volatile("adr %0, ." : "=r"(this_va));
+   +    uint32_t *vptr = (uint32_t *)this_va;
+   +    while (*--vptr != ARM64_NOP) {
+   +    };
+   +    vptr--;
+   +    hook_chain_t *hook_chain = local_container_of((uint64_t)vptr, hook_chain_t, transit);
+   ```
+
+5. **trampoline 设置简化** (line 560-566):
+   ```diff
+   -    if (hook->origin_insts[0] == ARM64_PACIASP || hook->origin_insts[0] == ARM64_PACIBSP) {
+   -        hook->tramp_insts_num = branch_from_to(&hook->tramp_insts[1], hook->origin_addr, hook->replace_addr);
+   -        hook->tramp_insts[0] = ARM64_BTI_JC;
+   -        hook->tramp_insts_num++;
+   -    } else {
+   -        hook->tramp_insts_num = branch_from_to(hook->tramp_insts, hook->origin_addr, hook->replace_addr);
+   -    }
+   +    hook->tramp_insts_num = branch_from_to(hook->tramp_insts, hook->origin_addr, hook->replace_addr);
+   ```
+
+6. **TRAMPOLINE 宏调用替换**:
+   ```diff
+   -    for (int i = 0; i < TRAMPOLINE_MAX_NUM; i++) {
+   +    for (int i = 0; i < TRAMPOLINE_NUM; i++) {
+   ...
+   -    void *addrs[TRAMPOLINE_MAX_NUM];
+   +    void *addrs[TRAMPOLINE_NUM];
+   ```
+
+### 应用步骤(等你 sync private fork 时)
+
+```bash
+# 在 Zhanfg/KernelPatch-Public 本地克隆里
+cd kernel/base
+curl -sL https://raw.githubusercontent.com/bmax121/KernelPatch/dev/kernel/base/hook.c > hook.c
+# 然后修复宏名(因为 hook.h 是我们 fork 的)
+sed -i 's/TRAMPOLINE_NUM/TRAMPOLINE_MAX_NUM/g' hook.c
+sed -i 's/ARM64_PACIASP.*//g; s/ARM64_PACIBSP.*//g' hook.c
+cd ../include
+# 保留我们的 hook.h (因为有额外的原创字段)
+# 只同步 TRAMPOLINE_NUM = 4 这个值
+sed -i 's/TRAMPOLINE_MAX_NUM 6/TRAMPOLINE_MAX_NUM 4/g' hook.h
+# 在 3 个内核版本上测试 boot + module load + unload
+```
+
+### 风险
+
+- **`adr` + NOP 反扫**: 现代内核(5.10+)工作良好;**4.14 老内核某些编译器布局可能不稳**,需要真机验证
+- **`TRAMPOLINE_MAX_NUM` 6 → 4**: 减少 trampoline 槽位,某些超长函数 prologue 可能放不下
+- **PAC/IBTI 简化**: 我们 fork 在某些 6.x 内核上还依赖 PAC 修复路径,简化后会失去这个能力
+
+**结论: patch 准备好,但合并需要真机测试。本仓库不动 fork 代码。**
+
 ### 上游 git log (dev, 最近 10 个)
 
 ```
