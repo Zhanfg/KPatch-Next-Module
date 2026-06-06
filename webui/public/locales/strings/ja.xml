@@ -147,4 +147,18 @@
     <string name="msg_export_failed">エクスポート失敗</string>
     <string name="msg_import_success">%1 個のアプリをインポートしました</string>
     <string name="msg_import_failed">インポート失敗: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">アップデートあり</string>
+    <string name="title_check_update">更新を確認</string>
+    <string name="update_new_version">新しいバージョン</string>
+    <string name="update_current">現在のバージョン: %1</string>
+    <string name="update_hint">KPatch-Next の新しいバージョンが利用可能です。ダウンロードをタップしてブラウザでリリースページを開いてください。</string>
+    <string name="update_available">%1 利用可能</string>
+    <string name="update_up_to_date">最新です</string>
+    <string name="update_download_started">ダウンロードを開いています...</string>
+    <string name="update_download_failed">ダウンロードを開けません</string>
+    <string name="update_no_url">update.json にダウンロード URL がありません</string>
+    <string name="button_later">後で</string>
+    <string name="button_download">ダウンロード</string>
+    <string name="status_checking">確認中...</string>
 </resources>

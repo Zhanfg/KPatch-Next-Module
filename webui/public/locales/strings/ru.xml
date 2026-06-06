@@ -147,4 +147,18 @@
     <string name="msg_export_failed">Ошибка экспорта</string>
     <string name="msg_import_success">%1 приложений импортировано</string>
     <string name="msg_import_failed">Ошибка импорта: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Доступно обновление</string>
+    <string name="title_check_update">Проверить обновления</string>
+    <string name="update_new_version">Новая версия</string>
+    <string name="update_current">Установлено: %1</string>
+    <string name="update_hint">Доступна новая версия KPatch-Next. Нажмите Загрузить, чтобы открыть страницу релиза в браузере.</string>
+    <string name="update_available">%1 доступна</string>
+    <string name="update_up_to_date">Актуальная версия</string>
+    <string name="update_download_started">Открытие загрузки...</string>
+    <string name="update_download_failed">Не удалось открыть загрузку</string>
+    <string name="update_no_url">Нет URL для загрузки в update.json</string>
+    <string name="button_later">Позже</string>
+    <string name="button_download">Загрузить</string>
+    <string name="status_checking">Проверка...</string>
 </resources>

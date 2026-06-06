@@ -147,4 +147,18 @@
     <string name="msg_export_failed">Dışa aktarma başarısız</string>
     <string name="msg_import_success">%1 uygulama içe aktarıldı</string>
     <string name="msg_import_failed">İçe aktarma başarısız: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Güncelleme mevcut</string>
+    <string name="title_check_update">Güncellemeleri kontrol et</string>
+    <string name="update_new_version">Yeni sürüm</string>
+    <string name="update_current">Şu anda yüklü: %1</string>
+    <string name="update_hint">KPatch-Next'in yeni bir sürümü mevcut. Tarayıcınızda sürüm sayfasını açmak için İndir'e dokunun.</string>
+    <string name="update_available">%1 mevcut</string>
+    <string name="update_up_to_date">Güncel</string>
+    <string name="update_download_started">İndirme açılıyor...</string>
+    <string name="update_download_failed">İndirme açılamadı</string>
+    <string name="update_no_url">update.json'da indirme URL'si yok</string>
+    <string name="button_later">Sonra</string>
+    <string name="button_download">İndir</string>
+    <string name="status_checking">Kontrol ediliyor...</string>
 </resources>

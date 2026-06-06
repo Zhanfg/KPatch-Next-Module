@@ -27,6 +27,7 @@ import * as backupModule from './page/backup.js';
 import * as repoModule from './page/kpm_repo.js';
 import { maybeShowChangelog } from './changelog.js';
 import { initThemeSettings } from './theme.js';
+import { maybeNotifyUpdate, checkForUpdates } from './update-check.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
@@ -125,6 +126,45 @@ function initRepoSettings() {
     const safemodeDetail = document.getElementById('current-safemode');
     const safemodeItem = document.getElementById('safemode');
 
+    // Check for updates on click. The checkForUpdates call is async;
+    // we debounce so the user doesn't get multiple spinners.
+    const checkItem = document.getElementById('check-updates');
+    const updateStatus = document.getElementById('update-status');
+    if (checkItem) {
+        checkItem.onclick = async () => {
+            if (updateStatus) updateStatus.textContent = getString('status_checking');
+            const result = await checkForUpdates();
+            if (!result.ok) {
+                if (updateStatus) updateStatus.textContent = result.reason === 'network-error'
+                    ? getString('msg_repo_fetch_failed')
+                    : getString('msg_error', result.reason);
+                return;
+            }
+            if (result.updateAvailable) {
+                // Open the update dialog instead of showing a toast.
+                const dialog = document.getElementById('update-dialog');
+                const versionEl = dialog?.querySelector('#update-version');
+                const currentEl = dialog?.querySelector('#update-current');
+                if (versionEl) versionEl.textContent = result.remote.version;
+                if (currentEl) currentEl.textContent = getString('update_current', result.local);
+                dialog?.querySelector('.update-download')?.addEventListener('click', () => {
+                    dialog.close();
+                    if (result.remote.zipUrl) {
+                        exec(`am start -a android.intent.action.VIEW -d ${result.remote.zipUrl}`)
+                            .then(() => toast(getString('update_download_started')))
+                            .catch(() => toast(getString('update_download_failed')));
+                    }
+                }, { once: true });
+                dialog?.querySelector('.update-later')?.addEventListener('click', () => dialog.close(), { once: true });
+                dialog?.show();
+                if (updateStatus) updateStatus.textContent = getString('update_available', result.remote.version);
+            } else {
+                toast(getString('update_up_to_date'));
+                if (updateStatus) updateStatus.textContent = getString('update_up_to_date');
+            }
+        };
+    }
+
     // Query the safe-mode state via the kp-safemode helper. The helper
     // exits 0 with stdout "0" or "1" on success. Anything else (binary
     // missing, kernel not patched, no root) leaves the indicator in the
@@ -207,6 +247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     repoModule.initRepoPage();
     initRepoSettings();
     initThemeSettings();
+    initUpdateCheck();
 
     if (splash) {
         setTimeout(() => splash.classList.add('exit'), 50);
@@ -216,6 +257,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Show the changelog modal the first time a user lands on a new version.
     // No-op once they've dismissed it (tracked in localStorage).
     maybeShowChangelog();
+
+    // Background: check update.json and notify if a newer release exists.
+    // Errors are silent so this doesn't add toast noise on cold start.
+    maybeNotifyUpdate();
 });
 
 // Overwrite default dialog animation

@@ -855,6 +855,43 @@ md-menu-item label {
     align-items: center;
 }
 
+.update-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 280px;
+}
+
+.update-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.update-label {
+    font-size: 0.85em;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+#update-version {
+    font-size: 1.5em;
+    font-weight: 500;
+    color: var(--md-sys-color-primary, #6750a4);
+}
+
+#update-current {
+    font-size: 0.9em;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+.update-hint {
+    font-size: 0.88em;
+    line-height: 1.4;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    padding-top: 8px;
+    border-top: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+}
+
 md-dialog [slot="content"] {
     display: flex;
     flex-direction: column;

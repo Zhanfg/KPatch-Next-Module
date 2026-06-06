@@ -147,4 +147,18 @@
     <string name="msg_export_failed">Gagal mengekspor</string>
     <string name="msg_import_success">%1 aplikasi diimpor</string>
     <string name="msg_import_failed">Gagal mengimpor: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Pembaruan tersedia</string>
+    <string name="title_check_update">Periksa pembaruan</string>
+    <string name="update_new_version">Versi baru</string>
+    <string name="update_current">Saat ini terpasang: %1</string>
+    <string name="update_hint">Versi baru KPatch-Next tersedia. Ketuk Unduh untuk membuka halaman rilis di browser Anda.</string>
+    <string name="update_available">%1 tersedia</string>
+    <string name="update_up_to_date">Terkini</string>
+    <string name="update_download_started">Membuka unduhan...</string>
+    <string name="update_download_failed">Tidak dapat membuka unduhan</string>
+    <string name="update_no_url">Tidak ada URL unduhan di update.json</string>
+    <string name="button_later">Nanti</string>
+    <string name="button_download">Unduh</string>
+    <string name="status_checking">Memeriksa...</string>
 </resources>

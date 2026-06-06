@@ -147,4 +147,18 @@
     <string name="msg_export_failed">Esportazione fallita</string>
     <string name="msg_import_success">%1 app importate</string>
     <string name="msg_import_failed">Importazione fallita: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Aggiornamento disponibile</string>
+    <string name="title_check_update">Controlla aggiornamenti</string>
+    <string name="update_new_version">Nuova versione</string>
+    <string name="update_current">Attualmente installato: %1</string>
+    <string name="update_hint">Una nuova versione di KPatch-Next è disponibile. Tocca Scarica per aprire la pagina di rilascio nel browser.</string>
+    <string name="update_available">%1 disponibile</string>
+    <string name="update_up_to_date">Aggiornato</string>
+    <string name="update_download_started">Apertura download...</string>
+    <string name="update_download_failed">Impossibile aprire il download</string>
+    <string name="update_no_url">Nessun URL di download in update.json</string>
+    <string name="button_later">Dopo</string>
+    <string name="button_download">Scarica</string>
+    <string name="status_checking">Verifica...</string>
 </resources>

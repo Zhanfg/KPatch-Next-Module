@@ -147,4 +147,18 @@
     <string name="msg_export_failed">রপ্তানি ব্যর্থ</string>
     <string name="msg_import_success">%1 অ্যাপ আমদানি হয়েছে</string>
     <string name="msg_import_failed">আমদানি ব্যর্থ: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">আপডেট উপলব্ধ</string>
+    <string name="title_check_update">আপডেট চেক করুন</string>
+    <string name="update_new_version">নতুন সংস্করণ</string>
+    <string name="update_current">বর্তমানে ইনস্টল করা: %1</string>
+    <string name="update_hint">KPatch-Next এর একটি নতুন সংস্করণ উপলব্ধ। ডাউনলোড টিপে আপনার ব্রাউজারে রিলিজ পেজ খুলুন।</string>
+    <string name="update_available">%1 উপলব্ধ</string>
+    <string name="update_up_to_date">হালনাগাদ</string>
+    <string name="update_download_started">ডাউনলোড খুলছে...</string>
+    <string name="update_download_failed">ডাউনলোড খুলতে পারেনি</string>
+    <string name="update_no_url">update.json এ কোনো ডাউনলোড URL নেই</string>
+    <string name="button_later">পরে</string>
+    <string name="button_download">ডাউনলোড</string>
+    <string name="status_checking">যাচাই হচ্ছে...</string>
 </resources>

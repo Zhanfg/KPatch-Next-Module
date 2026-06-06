@@ -223,6 +223,14 @@
                                 <div slot="detail" id="current-theme"></div>
                             </div>
                         </div>
+                        <div class="list-item installed-only" id="check-updates">
+                            <md-ripple></md-ripple>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z" /></svg></md-icon>
+                            <div class="list-item-content">
+                                <div slot="headline" data-i18n="title_check_update">Check for updates</div>
+                                <div slot="detail" id="update-status"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -428,6 +436,27 @@
             </div>
         </md-dialog>
     </div>
+
+    <!-- Update notification modal -->
+    <md-dialog id="update-dialog">
+        <div slot="headline" data-i18n="title_update_available">Update available</div>
+        <div slot="content">
+            <div class="update-summary">
+                <div class="update-row">
+                    <span class="update-label" data-i18n="update_new_version">New version</span>
+                    <span class="update-value" id="update-version"></span>
+                </div>
+                <div class="update-row">
+                    <span class="update-label" id="update-current"></span>
+                </div>
+                <div class="update-hint" data-i18n="update_hint">A new version of KPatch-Next is available. Tap Download to open the release page in your browser.</div>
+            </div>
+        </div>
+        <div slot="actions">
+            <md-text-button class="update-later" data-i18n="button_later">Later</md-text-button>
+            <md-filled-button class="update-download" data-i18n="button_download">Download</md-filled-button>
+        </div>
+    </md-dialog>
 
     <!-- Changelog modal -->
     <md-dialog id="changelog-dialog">

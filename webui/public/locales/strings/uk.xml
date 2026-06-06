@@ -147,4 +147,18 @@
     <string name="msg_export_failed">Помилка експорту</string>
     <string name="msg_import_success">%1 додатків імпортовано</string>
     <string name="msg_import_failed">Помилка імпорту: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Доступне оновлення</string>
+    <string name="title_check_update">Перевірити оновлення</string>
+    <string name="update_new_version">Нова версія</string>
+    <string name="update_current">Встановлено: %1</string>
+    <string name="update_hint">Доступна нова версія KPatch-Next. Натисніть Завантажити, щоб відкрити сторінку релізу в браузері.</string>
+    <string name="update_available">%1 доступна</string>
+    <string name="update_up_to_date">Актуальна</string>
+    <string name="update_download_started">Відкриття завантаження...</string>
+    <string name="update_download_failed">Не вдалося відкрити завантаження</string>
+    <string name="update_no_url">Немає URL для завантаження в update.json</string>
+    <string name="button_later">Пізніше</string>
+    <string name="button_download">Завантажити</string>
+    <string name="status_checking">Перевірка...</string>
 </resources>

@@ -147,4 +147,18 @@
     <string name="msg_export_failed">فشل التصدير</string>
     <string name="msg_import_success">تم استيراد %1 تطبيقات</string>
     <string name="msg_import_failed">فشل الاستيراد: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">تحديث متاح</string>
+    <string name="title_check_update">تحقق من التحديثات</string>
+    <string name="update_new_version">الإصدار الجديد</string>
+    <string name="update_current">المثبت حاليًا: %1</string>
+    <string name="update_hint">إصدار جديد من KPatch-Next متاح. اضغط تنزيل لفتح صفحة الإصدار في متصفحك.</string>
+    <string name="update_available">%1 متاح</string>
+    <string name="update_up_to_date">محدّث</string>
+    <string name="update_download_started">جارٍ فتح التنزيل...</string>
+    <string name="update_download_failed">تعذر فتح التنزيل</string>
+    <string name="update_no_url">لا يوجد رابط تنزيل في update.json</string>
+    <string name="button_later">لاحقًا</string>
+    <string name="button_download">تنزيل</string>
+    <string name="status_checking">جارٍ التحقق...</string>
 </resources>

@@ -140,6 +140,20 @@
     <string name="filter_all">All</string>
     <string name="filter_loaded">Loaded</string>
     <string name="filter_with_event">With event</string>
+    <!-- Update checker -->
+    <string name="title_update_available">Update available</string>
+    <string name="title_check_update">Check for updates</string>
+    <string name="update_new_version">New version</string>
+    <string name="update_current">Currently installed: %1$s</string>
+    <string name="update_hint">A new version of KPatch-Next is available. Tap Download to open the release page in your browser.</string>
+    <string name="update_available">%1$s available</string>
+    <string name="update_up_to_date">Up to date</string>
+    <string name="update_download_started">Opening download...</string>
+    <string name="update_download_failed">Could not open download</string>
+    <string name="update_no_url">No download URL in update.json</string>
+    <string name="button_later">Later</string>
+    <string name="button_download">Download</string>
+    <string name="status_checking">Checking...</string>
     <!-- Exclude list import/export -->
     <string name="button_export">Export</string>
     <string name="button_import">Import</string>

@@ -147,4 +147,18 @@
     <string name="msg_export_failed">匯出失敗</string>
     <string name="msg_import_success">已匯入 %1 個應用</string>
     <string name="msg_import_failed">匯入失敗: %1</string>
+    <!-- Update checker -->
+    <string name="title_update_available">有可用更新</string>
+    <string name="title_check_update">檢查更新</string>
+    <string name="update_new_version">新版本</string>
+    <string name="update_current">目前已安裝: %1</string>
+    <string name="update_hint">KPatch-Next 有新版本可用。點擊下載喺瀏覽器入面開啟發佈頁面。</string>
+    <string name="update_available">%1 可用</string>
+    <string name="update_up_to_date">已係最新</string>
+    <string name="update_download_started">正在打開下載...</string>
+    <string name="update_download_failed">無法打開下載</string>
+    <string name="update_no_url">update.json 入面冇下載連結</string>
+    <string name="button_later">稍後</string>
+    <string name="button_download">下載</string>
+    <string name="status_checking">檢查中...</string>
 </resources>
