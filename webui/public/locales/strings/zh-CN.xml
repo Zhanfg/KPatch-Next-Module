@@ -236,4 +236,14 @@
     <string name="kpm_hero_empty">未加载任何 KPM 模块</string>
     <string name="kpm_dashboard_full_title">KPM 仪表盘</string>
     <string name="kpm_dashboard_expand">查看完整仪表盘</string>
+
+    <!-- APM 风格的更新提示。由 webui/page/kpm-update.js 渲染到已安装
+         KPM 卡片上，并在启动时通过 toast 提示。 -->
+    <string name="kpm_update_badge">可更新: %1$s</string>
+    <string name="kpm_update_available_tooltip">已安装: %1$s — 仓库有更新版本: %2$s</string>
+    <string name="kpm_update_button_title">从仓库安装更新</string>
+    <string name="kpm_updates_available_toast">发现 %1$d 个 KPM 可更新 — 打开 KPM 页面升级</string>
+    <string name="title_install_from_url">通过 URL 安装 KPM</string>
+    <string name="hint_install_from_url">.kpm 或 .zip 文件直链。建议使用带 SHA256 校验的模块。</string>
+    <string name="button_install">安装</string>
 </resources>

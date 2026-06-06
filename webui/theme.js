@@ -54,7 +54,7 @@ export function initThemeSettings() {
     const detail = document.getElementById('current-theme');
     const dialog = document.getElementById('theme-dialog');
     const form = document.getElementById('theme-form');
-    if (!listItem || !dialog || !form) return;
+    if (!listItem || !dialog || !form || !detail) return;
 
     const updateDetail = () => {
         const theme = getStoredTheme();
@@ -96,7 +96,7 @@ export function initThemeSettings() {
 
     // Keep the detail line in sync with translations that arrive after init.
     // We can't easily hook the language load, so we just update once the
-    // document is interactive (translations are usually loaded by then).
+    // document is fully loaded (translations are usually loaded by then).
     if (document.readyState !== 'complete') {
         window.addEventListener('load', updateDetail, { once: true });
     }

@@ -62,7 +62,7 @@ export function extractJsonString(text, key) {
     if (typeof text !== 'string' || !key) return null;
     // Allow optional whitespace between tokens; the manifest writer
     // uses pretty-printed JSON, but external tools might compact it.
-    const re = new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 'i');
+    const re = new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`);
     const m = text.match(re);
     return m ? m[1] : null;
 }
@@ -73,9 +73,9 @@ export function extractJsonString(text, key) {
  */
 export function extractJsonBool(text, key) {
     if (typeof text !== 'string' || !key) return null;
-    const re = new RegExp(`"${key}"\\s*:\\s*(true|false)`, 'i');
+    const re = new RegExp(`"${key}"\\s*:\\s*(true|false)`);
     const m = text.match(re);
-    return m ? (m[1].toLowerCase() === 'true') : null;
+    return m ? (m[1] === 'true') : null;
 }
 
 /**
@@ -162,7 +162,7 @@ export function validateManifestSchema(text) {
  */
 export function decideKpState(sigs) {
     const s = sigs || {};
-    // Precedence: Kp-patched > APatch > Magisk > KSU > patched (raw).
+    // Precedence: APatch > Kp-patched > Magisk > KSU > patched (raw).
     // A patched kernel with Magisk/KSU underneath is still "patched"
     // — the user is running Kp over a rooted boot. APatch is its
     // own thing (it patches the kernel too but with a different
@@ -188,7 +188,7 @@ export function decideKpState(sigs) {
  *   - lastManifestSha: string|null  SHA256 from the latest manifest.
  *   - lastKpState:    string|null  kp_state from the latest manifest.
  *   - forceRebackup:  boolean  KP_REBACKUP=1 was set by the WebUI.
- * @returns {'rebackup_recommended'|'skip'|'no_prior_backup'|'error'}
+ * @returns {'rebackup_recommended'|'skip'|'no_prior_backup'}
  */
 export function decideRebackup({ currentSha, lastManifestSha, lastKpState, forceRebackup } = {}) {
     if (forceRebackup === true) return 'rebackup_recommended';

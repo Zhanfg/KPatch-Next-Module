@@ -19,7 +19,11 @@ toupper() {
 }
 
 grep_cmdline() {
-  local REGEX="s/^$1=//p"
+  # P1 fix: escape regex metachars in $1 so callers can pass keys with
+  # '.', '*', '+' etc. without breaking the sed expression.
+  local _key
+  _key=$(printf '%s' "$1" | sed 's/[.[\*^$()+?{|]/\\&/g')
+  local REGEX="s/^${_key}=//p"
   # P1-Cluster D fix: the previous echo $(cat /proc/cmdline) collapses
   # newlines (good for the cmdline file) but, on devices that ship a
   # multi-line bootconfig, the cat-then-echo-then-xargs could yield
@@ -30,9 +34,14 @@ grep_cmdline() {
 }
 
 grep_prop() {
-  local REGEX="s/^$1=//p"
+  # P1 fix: quote $FILES so word-splitting doesn't corrupt multi-arg
+  # invocations like `grep_prop ro.product /system/build.prop /vendor/build.prop`.
+  # Also use the same regex-escape helper as grep_cmdline.
+  local _key
+  _key=$(printf '%s' "$1" | sed 's/[.[\*^$()+?{|]/\\&/g')
+  local REGEX="s/^${_key}=//p"
   shift
-  local FILES=$@
+  local FILES="$*"
   [ -z "$FILES" ] && FILES='/system/build.prop'
   cat $FILES 2>/dev/null | dos2unix | sed -n "$REGEX" | head -n 1
 }
@@ -41,26 +50,47 @@ getvar() {
   local VARNAME=$1
   local VALUE
   local PROPPATH='/data/.magisk /cache/.magisk'
-  [ ! -z $MAGISKTMP ] && PROPPATH="$MAGISKTMP/.magisk/config $PROPPATH"
+  # P1 fix: $MAGISKTMP was unquoted in `[ ! -z $MAGISKTMP ]`; an
+  # unset var made the test `[ ! -z ]` always true.
+  [ -n "$MAGISKTMP" ] && PROPPATH="$MAGISKTMP/.magisk/config $PROPPATH"
   VALUE=$(grep_prop $VARNAME $PROPPATH)
   # P0-1 security fix: replace eval with printf -v and add a key allow-list
   # to prevent shell-injection via attacker-controlled VALUE.
+  # P2 fix: printf -v is bash-only; gate the whole block behind a
+  # BASH detection so the file still works under mksh/ash. When
+  # bash is present (which is the case on every device we support)
+  # the printf -v path is taken; otherwise we fall back to eval,
+  # which is safe because the allow-list above restricts VARNAME to
+  # three known-safe keys.
   case "$VARNAME" in
     KEEPVERITY|KEEPFORCEENCRYPT|RECOVERYMODE) ;;
     *) abort "! getvar: unknown key '$VARNAME'";;
   esac
-  [ -n "$VALUE" ] && printf -v "$VARNAME" '%s' "$VALUE"
+  if [ -n "$BASH" ] && [ -n "$VALUE" ]; then
+    printf -v "$VARNAME" '%s' "$VALUE"
+  elif [ -n "$VALUE" ]; then
+    eval "$VARNAME=\$VALUE"
+  fi
 }
 
 is_mounted() {
+  # P1 style: function exit status is already grep's, so the trailing
+  # `return $?` was redundant.
   grep -q " $(readlink -f $1) " /proc/mounts 2>/dev/null
-  return $?
 }
+
 abort() {
   ui_print "$1"
   $BOOTMODE || recovery_cleanup
-  [ ! -z $MODPATH ] && rm -rf $MODPATH
-  rm -rf $TMPDIR
+  # P1 security fix: quote both variables in rm -rf. Unquoted $MODPATH
+  # with a glob character would expand and rm -rf; unquoted $TMPDIR
+  # on an unset value would degrade to `rm -rf` (no arg, but loud).
+  if [ -n "$MODPATH" ]; then
+    rm -rf "$MODPATH"
+  fi
+  if [ -n "$TMPDIR" ]; then
+    rm -rf "$TMPDIR"
+  fi
   exit 1
 }
 set_nvbase() {
@@ -181,7 +211,10 @@ recovery_cleanup() {
 find_block() {
   local BLOCK DEV DEVICE DEVNAME PARTNAME UEVENT
   for BLOCK in "$@"; do
-    DEVICE=$(find /dev/block \( -type b -o -type c -o -type l \) -iname $BLOCK | head -n 1) 2>/dev/null
+    # P1 bug fix: the `2>/dev/null` was outside the pipe, so it only
+    # suppressed `head` errors. Move it inside the find subshell so
+    # permission-denied noise from traversing /dev/block is silenced.
+    DEVICE=$(find /dev/block \( -type b -o -type c -o -type l \) -iname "$BLOCK" 2>/dev/null | head -n 1)
     if [ ! -z $DEVICE ]; then
       readlink -f $DEVICE
       return 0
@@ -240,11 +273,13 @@ get_next_slot() {
   fi
    [ -z $SLOT ] && { >&2 echo "can't determined next boot slot! check your devices is A/B"; exit 1; }
    [ "$SLOT" = "normal" ] &&  { >&2 echo "can't determined next boot slot! check your devices is A/B"; exit 1; }
-  if [[ $SLOT == *_a ]]; then
-    SLOT='_b'
-  else
-    SLOT='_a'
-  fi
+  # P0-1: was `[[ $SLOT == *_a ]]` (bash-ism). util_functions.sh has a
+  # POSIX /system/bin/sh shebang (mksh/Toybox ash on Android) which does
+  # not understand `[[`. case is portable across both.
+  case "$SLOT" in
+    *_a) SLOT='_b' ;;
+    *)   SLOT='_a' ;;
+  esac
   echo "SLOT=$SLOT"
 }
 
@@ -272,6 +307,13 @@ flash_image() {
   # it through `eval`, which allowed single-quote escape sequences in the
   # path to execute arbitrary shell commands as root. We now branch into
   # plain command pipelines — no eval, no string interpolation.
+  #
+  # P0-7 error-propagation fix: every prior revision ended with an
+  # unconditional `return 0`, which made the caller's `$? -ne 0` check
+  # (boot_patch.sh:391) dead code. Flashing a corrupt image would
+  # succeed silently and brick the device. Capture each pipeline's
+  # exit status and propagate the worst one.
+  local _rc=0
   if [ -b "$2" ]; then {
       local img_sz=$(stat -c '%s' "$1")
       local blk_sz=$(blockdev --getsize64 "$2")
@@ -284,21 +326,26 @@ flash_image() {
         *.gz) gzip -d < "$1" 2>/dev/null | dd of="$2" bs="$blk_bs" iflag=fullblock conv=notrunc,fsync 2>/dev/null;;
         *)    cat "$1"                   | dd of="$2" bs="$blk_bs" iflag=fullblock conv=notrunc,fsync 2>/dev/null;;
       esac
+      _rc=$?
       sync
   } elif [ -c "$2" ]; then {
       flash_eraseall "$2" >&2
+      local _nand_rc=0
       case "$1" in
         *.gz) gzip -d < "$1" 2>/dev/null | nandwrite -p "$2" - >&2;;
         *)    cat "$1"                   | nandwrite -p "$2" - >&2;;
       esac
+      _nand_rc=$?
+      [ "$_nand_rc" -ne 0 ] && _rc=$_nand_rc
   } else {
       echo "- Not block or char device, storing image"
       case "$1" in
         *.gz) gzip -d < "$1" > "$2" 2>/dev/null;;
         *)    cat    "$1"    > "$2" 2>/dev/null;;
       esac
+      _rc=$?
   } fi
-  return 0
+  return "$_rc"
 }
 
 save_image_to_storage() {
@@ -347,13 +394,11 @@ mount_ro_ensure() {
 # After calling this method, the following variables will be set:
 # SLOT, SYSTEM_AS_ROOT, LEGACYSAR
 mount_partitions() {
-  # Check A/B slot
-  SLOT=$(grep_cmdline androidboot.slot_suffix)
-  if [ -z $SLOT ]; then
-    SLOT=$(grep_cmdline androidboot.slot)
-    [ -z $SLOT ] || SLOT=_${SLOT}
-  fi
-  [ "$SLOT" = "normal" ] && unset SLOT
+  # P2 consistency: the slot-detection dance below is a copy of
+  # get_current_slot() (lines 217-229). Reuse the helper to keep the
+  # two paths in sync — if upstream Magisk changes the heuristic,
+  # we only need to update one place.
+  get_current_slot
   [ -z $SLOT ] || ui_print "- Current boot slot: $SLOT"
 
   # Mount ro partitions
@@ -485,6 +530,8 @@ check_data() {
   $DATA_DE && set_nvbase "/data/adb"
 }
 
+# After calling this method, the following variables will be set:
+# API, ABI, ARCH, ABI32, IS64BIT
 api_level_arch_detect() {
   API=$(grep_get_prop ro.build.version.sdk)
   ABI=$(grep_get_prop ro.product.cpu.abi)
@@ -509,8 +556,18 @@ api_level_arch_detect() {
 }
 
 remove_system_su() {
-  [ -d /postinstall/tmp ] && POSTINST=/postinstall
-  cd $POSTINST/system
+  # P0-2: POSTINST was only set when /postinstall/tmp existed. If it
+  # didn't, the next `cd $POSTINST/system` collapsed to `cd /system`
+  # (POSIX leaves unset vars empty, the path is interpreted as a
+  # relative-to-root `system` lookup), and we then `rm`d `bin/su` from
+  # the *live* running filesystem. Guard explicitly.
+  if [ -d /postinstall/tmp ]; then
+    POSTINST=/postinstall
+  else
+    >&2 echo "! /postinstall/tmp missing; skipping system su removal"
+    return 0
+  fi
+  cd "$POSTINST/system" || { >&2 echo "! cannot cd $POSTINST/system"; return 1; }
   if [ -f bin/su -o -f xbin/su ] && [ ! -f /su/bin/su ]; then
     ui_print "- Removing system installed root"
     blockdev --setrw /dev/block/mapper/system$SLOT 2>/dev/null

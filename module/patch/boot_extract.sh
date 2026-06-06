@@ -10,7 +10,7 @@ ARCH=$(getprop ro.product.cpu.abi)
 IS_INSTALL_NEXT_SLOT=$1
 
 # Load utility functions
-. $MODPATH/util_functions.sh
+. "$MODPATH/util_functions.sh"
 
 if [ "$IS_INSTALL_NEXT_SLOT" = "true" ]; then
   get_next_slot

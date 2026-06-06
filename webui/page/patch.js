@@ -40,10 +40,15 @@ function parseIni(str) {
 
 async function getInstalledVersion() {
     if (import.meta.env.DEV) return uInt2String('c06');
-    const working = await exec(`kpatch hello`, { env: { PATH: `${modDir}/bin` } });
-    if (working.stdout.trim() === '') return null;
-    const version = await exec(`kpatch kpver`, { env: { PATH: `${modDir}/bin` } });
-    return uInt2String(version.stdout.trim());
+    try {
+        const working = await exec(`kpatch hello`, { env: { PATH: `${modDir}/bin` } });
+        if (working.errno !== 0 || working.stdout.trim() === '') return null;
+        const version = await exec(`kpatch kpver`, { env: { PATH: `${modDir}/bin` } });
+        if (version.errno !== 0) return null;
+        return uInt2String(version.stdout.trim());
+    } catch (_) {
+        return null;
+    }
 }
 
 let bootSlot = '';
@@ -200,7 +205,7 @@ async function extractAndParseBootimg() {
     }
 
     // Prepare work directory
-    const prepare = spawn(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/* && cp ${modDir}/bin/kpimg ${modDir}/tmp/`);
+    const prepare = spawn('sh', ['-c', `mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/* && cp ${modDir}/bin/kpimg ${modDir}/tmp/`]);
     await new Promise((resolve, reject) => {
         // P1-Cluster C fix: only resolve on exit code 0; reject on any
         // non-zero exit so the patch can fail fast instead of producing
@@ -394,14 +399,6 @@ function patch(type) {
     const progressCard = document.getElementById('patch-progress-card');
     const progressContainer = document.getElementById('patch-progress');
 
-    const onOutput = (data) => {
-        const line = document.createElement('div');
-        line.textContent = data;
-        terminal.appendChild(line);
-        pageContent.scrollTo({ top: pageContent.scrollHeight, behavior: 'smooth' });
-        progress?.onLine(data);
-    };
-
     if (!bootDev) {
         terminal.textContent = getString('msg_error_no_boot_image');
         return;
@@ -411,6 +408,14 @@ function patch(type) {
     if (progressCard) progressCard.classList.remove('animate-hidden');
     resetProgress();
     const progress = startProgress(type, progressContainer);
+
+    const onOutput = (data) => {
+        const line = document.createElement('div');
+        line.textContent = data;
+        terminal.appendChild(line);
+        pageContent.scrollTo({ top: pageContent.scrollHeight, behavior: 'smooth' });
+        progress?.onLine(data);
+    };
 
     let args = ['sh'];
     if (type === "patch") {
@@ -453,6 +458,10 @@ function patch(type) {
     );
     process.stdout.on('data', onOutput);
     process.stderr.on('data', onOutput);
+    process.on('error', (err) => {
+        progress?.finish(false);
+        toast(getString('msg_error', err.message));
+    });
     process.on('exit', async (code) => {
         progress?.finish(code === 0);
         if (code === 0) {

@@ -73,6 +73,11 @@ function readElf64(filepath) {
     // Read section header string table
     const shstrOff = Number(data.readBigUInt64LE(e_shoff + e_shstrndx * e_shentsize + 0x18));
     const shstrSize = Number(data.readBigUInt64LE(e_shoff + e_shstrndx * e_shentsize + 0x20));
+    // Bounds-check section header string table
+    if (shstrOff >= data.length || shstrOff + shstrSize > data.length) {
+        console.error('  Section header string table extends beyond file');
+        return null;
+    }
     const shstr = data.slice(shstrOff, shstrOff + shstrSize);
 
     const sections = [];
@@ -91,7 +96,7 @@ function readElf64(filepath) {
         const nullIdx = shstr.indexOf(0, sh_name);
         const name = shstr.slice(sh_name, nullIdx > 0 ? nullIdx : sh_name + 30).toString('ascii');
 
-        sections.push({ idx: i, name, type: sh_flags, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_entsize });
+        sections.push({ idx: i, name, type: sh_type, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_entsize });
     }
 
     // Find symtab and strtab
@@ -115,7 +120,8 @@ function readElf64(filepath) {
             const st_shndx = data.readUInt16LE(symOff + 6);
             const st_type = st_info & 0xf;
             const nullIdx = strData.indexOf(0, st_name);
-            const name = st_name > 0 ? strData.slice(st_name, nullIdx > 0 ? nullIdx : st_name + 60).toString('ascii') : '';
+            const nameEnd = (nullIdx !== -1 && nullIdx > st_name) ? nullIdx : Math.min(st_name + 60, strData.length);
+            const name = st_name > 0 ? strData.slice(st_name, nameEnd).toString('ascii') : '';
             symbols.push({ name, type: st_type, shndx: st_shndx });
         }
     }

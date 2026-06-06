@@ -6,7 +6,7 @@
 // re-launch service.sh — the KPMs re-read their config every load.
 
 import { exec, toast } from 'kernelsu-alt';
-import { modDir, persistDir, escapeShell } from '../index.js';
+import { modDir, persistDir, escapeShell } from '../constants.js';
 import { getString } from '../language.js';
 import { escapeHTML } from '../utils.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
@@ -14,8 +14,7 @@ import { setupPullToRefresh } from '../pull-to-refresh.js';
 // In-memory state — reloaded on each refresh from the KPM dir listing.
 // The "installed" set is the set of .kpm files that match a known
 // stealth id, so we don't have to hardcode the list here.
-let installedKpms = [];      // [{ id, name, version, fileName, enabled }]
-let knownStealth = [];       // populated by querying kpm_repo.json (eventually)
+let installedKpms = [];      // [{ id, name, fileName, enabled }]
 
 const STEALTH_IDS = new Set([
     'stealth-proc-maps',
@@ -38,24 +37,20 @@ async function getInstalledKpms() {
     // stealth ids. We don't decode the kpm binary itself — we use the
     // file basename to match against kpm_repo.json.
     const r = await exec(
-        `ls -1 ${escapeShell(persistDir + '/kpm')}/*.kpm 2>/dev/null`,
+        `ls -1 ${persistDir}/kpm/*.kpm 2>/dev/null`,
         { env: { PATH: `${modDir}/bin:$PATH` } }
     );
     if (!r || r.errno !== 0 || !r.stdout.trim()) return [];
     const files = r.stdout.trim().split('\n').filter(Boolean);
-    const list = [];
-    for (const f of files) {
-        const basename = f.split('/').pop().replace(/\.kpm$/, '');
-        if (STEALTH_IDS.has(basename)) {
-            list.push({
-                id: basename,
-                name: basename.replace(/^stealth-/, 'Stealth: ').replace(/-/g, ' '),
-                fileName: basename + '.kpm',
-                enabled: await readKpmEnabled(basename),
-            });
-        }
-    }
-    return list;
+    const matches = files.map(f => f.split('/').pop().replace(/\.kpm$/, '')).filter(id => STEALTH_IDS.has(id));
+    if (!matches.length) return [];
+    const enabledStates = await Promise.all(matches.map(id => readKpmEnabled(id)));
+    return matches.map((id, i) => ({
+        id,
+        name: id.replace(/^stealth-/, 'Stealth: ').replace(/-/g, ' '),
+        fileName: id + '.kpm',
+        enabled: enabledStates[i],
+    }));
 }
 
 async function readKpmEnabled(id) {
@@ -78,6 +73,7 @@ async function readKpmEnabled(id) {
 async function writeKpmEnabled(id, enabled) {
     // Idempotent: read the file, replace the enabled line, or append
     // if missing. Touch the file so it exists.
+    // NOTE: v is constrained to '0'|'1' — do NOT accept user input here.
     const v = enabled ? '1' : '0';
     const cmd =
         `cfg=${escapeShell(KPM_CONFIG_DIR + '/' + id + '.conf')}; ` +
@@ -99,7 +95,7 @@ function renderCard(kpm) {
         <div class="module-card-header">
             <div class="flex-header">
                 <div class="module-card-title">${escapeHTML(kpm.name)}</div>
-                <div class="tag tag-st${kpm.enabled ? 'ealth-on' : 'ealth-off'}">${kpm.enabled ? 'ON' : 'OFF'}</div>
+                <div class="tag ${kpm.enabled ? 'tag-stealth-on' : 'tag-stealth-off'}">${kpm.enabled ? 'ON' : 'OFF'}</div>
             </div>
             <div class="module-card-subtitle">${escapeHTML(kpm.id)}.kpm</div>
         </div>
@@ -116,7 +112,7 @@ function renderCard(kpm) {
         if (ok) {
             kpm.enabled = newEnabled;
             const tag = card.querySelector('.tag');
-            tag.className = `tag tag-st${newEnabled ? 'ealth-on' : 'ealth-off'}`;
+            tag.className = `tag ${newEnabled ? 'tag-stealth-on' : 'tag-stealth-off'}`;
             tag.textContent = newEnabled ? 'ON' : 'OFF';
             toast(getString(newEnabled ? 'toast_stealth_enabled' : 'toast_stealth_disabled', kpm.name));
         } else {

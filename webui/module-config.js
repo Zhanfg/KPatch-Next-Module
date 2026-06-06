@@ -13,6 +13,7 @@ import { exec, toast } from 'kernelsu-alt';
 import { modDir, getEnv } from './index.js';
 import { getString } from './language.js';
 import { supportsProfiles } from './ksu.js';
+import { escapeHTML } from './utils.js';
 
 const MODULE_ID = 'KPatch-Next';
 
@@ -131,9 +132,9 @@ export async function openModuleConfigDialog() {
                     const row = document.createElement('div');
                     row.className = 'config-row';
                     row.innerHTML = `
-                        <div class="config-key">${escapeHtml(k)}</div>
-                        <div class="config-value">${escapeHtml(value || '—')}</div>
-                        <md-icon-button class="config-delete-btn" title="${getString('button_delete')}">
+                        <div class="config-key">${escapeHTML(k)}</div>
+                        <div class="config-value">${escapeHTML(value || '—')}</div>
+                        <md-icon-button class="config-delete-btn" title="${escapeHTML(getString('button_delete'))}">
                             <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg></md-icon>
                         </md-icon-button>
                     `;
@@ -152,7 +153,6 @@ export async function openModuleConfigDialog() {
             list.appendChild(empty);
         }
     };
-    refresh();
 
     // Add a new entry: read the key/value from the dialog's text
     // field, save it, and clear the field.
@@ -173,7 +173,7 @@ export async function openModuleConfigDialog() {
             value = '';
         } else {
             key = raw.slice(0, eq).trim();
-            value = raw.slice(eq + 1);
+            value = raw.slice(eq + 1).trim();
         }
         if (!key) return;
         const ok = await writeConfig(key, value);
@@ -188,7 +188,12 @@ export async function openModuleConfigDialog() {
     const existingList = content?.querySelector('.config-list');
     if (existingList) existingList.remove();
     if (field) field.placeholder = 'key=value';
-    contentDiv?.after?.(list) ?? content?.appendChild(list);
+    if (contentDiv) {
+        contentDiv.after(list);
+    } else {
+        content?.appendChild(list);
+    }
+    await refresh();
 
     dialog.show();
     dialog.addEventListener('close', () => {
@@ -199,10 +204,3 @@ export async function openModuleConfigDialog() {
     }, { once: true });
 }
 
-function escapeHtml(s) {
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}

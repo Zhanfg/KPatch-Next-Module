@@ -9,6 +9,7 @@
 // We match these to a fixed step list and mark each as done when seen.
 
 import { getString } from './language.js';
+import { escapeHTML } from './utils.js';
 
 const PATCH_STEPS = [
     { id: 'extract',   pattern: /(extract|find|locate).*boot|image/i,  label: 'patch_step_extract' },
@@ -148,12 +149,4 @@ export function resetProgress() {
     if (container) container.innerHTML = '';
     stepEls.clear();
     currentSteps = [];
-}
-
-function escapeHtml(s) {
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
 }

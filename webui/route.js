@@ -8,6 +8,7 @@ import { getString } from './language.js';
 const backBtn = document.getElementById('back-btn');
 
 function setupExitBtn() {
+    if (!backBtn) return;
     const ksuExit = typeof window.ksu?.exit === 'function';
     const webuiExit = typeof window.webui?.exit === 'function';
 
@@ -28,17 +29,25 @@ function switchPage(pageId, title, navId = null) {
     document.getElementById('close-kpm-search-btn')?.click();
     document.getElementById('close-app-search-btn')?.click();
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === pageId));
-    document.querySelector('.title').textContent = title;
+    const titleEl = document.querySelector('.title');
+    if (titleEl) titleEl.textContent = title;
 
     // Icon
-    document.getElementById('home-icon').style.display = (pageId === 'home-page' ? 'flex' : 'none');
-    document.getElementById('kpm-icon').style.display = (pageId === 'kpm-page' ? 'flex' : 'none');
-    document.getElementById('exclude-icon').style.display = (pageId === 'exclude-page' ? 'flex' : 'none');
+    // P1 fix: optional chaining can't be on the left-hand side of an
+    // assignment. Capture the element first, then guard with a regular
+    // if-check before mutating its style. Same pattern repeated for
+    // each top-bar icon and the trailing-btn below.
+    const homeIcon = document.getElementById('home-icon');
+    if (homeIcon) homeIcon.style.display = (pageId === 'home-page' ? 'flex' : 'none');
+    const kpmIcon = document.getElementById('kpm-icon');
+    if (kpmIcon) kpmIcon.style.display = (pageId === 'kpm-page' ? 'flex' : 'none');
+    const excludeIcon = document.getElementById('exclude-icon');
+    if (excludeIcon) excludeIcon.style.display = (pageId === 'exclude-page' ? 'flex' : 'none');
 
     // Bottom Bar
     const isPrimary = navId !== null;
-    document.querySelector('.bottom-bar').classList.toggle('hide', !isPrimary);
-    document.querySelector('.content').classList.toggle('no-bottom-bar', !isPrimary);
+    document.querySelector('.bottom-bar')?.classList.toggle('hide', !isPrimary);
+    document.querySelector('.content')?.classList.toggle('no-bottom-bar', !isPrimary);
 
     if (isPrimary) {
         updateBottomBar(navId);
@@ -58,7 +67,8 @@ function switchPage(pageId, title, navId = null) {
 // Patch/UnPatch
 function preparePatchUI(title, isUnpatch) {
     switchPage('patch-page', title);
-    document.querySelector('.trailing-btn').style.display = 'flex';
+    const trailingBtn = document.querySelector('.trailing-btn');
+    if (trailingBtn) trailingBtn.style.display = 'flex';
     document.getElementById('patch-terminal').innerHTML = '';
     document.getElementById('reboot-fab').classList.add('hide');
 
@@ -120,12 +130,12 @@ function updateBottomBar(activeId) {
 }
 
 export function setupRoute() {
-    document.getElementById('patch-btn').onclick = navigateToPatch;
-    document.getElementById('uninstall').onclick = navigateToUnPatch;
-    document.getElementById('not-installed').onclick = navigateToPatch;
-    document.getElementById('logs').onclick = navigateToLogs;
-    document.getElementById('backups').onclick = navigateToBackups;
-    document.getElementById('repository').onclick = navigateToRepository;
+    document.getElementById('patch-btn')?.addEventListener('click', navigateToPatch);
+    document.getElementById('uninstall')?.addEventListener('click', navigateToUnPatch);
+    document.getElementById('not-installed')?.addEventListener('click', navigateToPatch);
+    document.getElementById('logs')?.addEventListener('click', navigateToLogs);
+    document.getElementById('backups')?.addEventListener('click', navigateToBackups);
+    document.getElementById('repository')?.addEventListener('click', navigateToRepository);
 
     document.querySelectorAll('.bottom-bar-item').forEach(item => {
         item.addEventListener('click', () => {

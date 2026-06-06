@@ -14,7 +14,16 @@ export function setupPullToRefresh(element, onRefresh) {
         </div>
     `;
 
-    element.parentElement.insertBefore(container, element);
+    // P0-14: previously `element.parentElement.insertBefore(...)` —
+    // if `element` was detached from the DOM (e.g. a page that's
+    // currently hidden via display:none and never re-rendered) its
+    // parentElement is null and this throws. Bail out cleanly so the
+    // surrounding init doesn't fail.
+    const _parent = element.parentElement;
+    if (!_parent) {
+        return;
+    }
+    _parent.insertBefore(container, element);
 
     const progress = container.querySelector('.ptr-progress');
 

@@ -28,7 +28,7 @@ function ok(r) { return r && r.errno === 0; }
 function invalidateCache() { _cache.clear(); _heroCache = { data: null, ts: 0 }; }
 
 function parseModulesLine(line, kpmName) {
-    if (!line || !line.startsWith(kpmName)) return null;
+    if (!line || !(line.startsWith(kpmName + ' ') || line === kpmName)) return null;
     const parts = line.trim().split(/\s+/);
     if (parts.length < 2) return null;
     return { size: parseInt(parts[1], 10) || 0 };

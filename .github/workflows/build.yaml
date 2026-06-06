@@ -8,7 +8,6 @@ on:
 
 env:
   MODULE_NAME: 'KPatch-Next-Module'
-  GH_TOKEN: ${{ github.token }}
 
 jobs:
   # ═══ Pre-build tests (run on source code, no downloads needed) ═══
@@ -71,7 +70,7 @@ jobs:
 
     - name: version.properties has required keys
       run: |
-        for key in kernelpatch magiskboot; do
+        for key in kpatch-next kernelpatch magiskboot; do
           if ! grep -q "^$key=" version.properties; then
             echo "::error::Missing key '$key' in version.properties"
             exit 1
@@ -114,10 +113,12 @@ jobs:
           MISSING=$(comm -23 <(echo "$BASE_KEYS") <(extract_keys "$f") | wc -l)
           if [ "$MISSING" -gt 0 ]; then
             echo "::warning file=$f::$MISSING missing keys ($LANG_COUNT/$BASE_COUNT)"
+            FAIL=1
           else
             echo "✓ $(basename "$f"): complete ($LANG_COUNT keys)"
           fi
         done
+        exit $FAIL
 
   kpm-validation:
     name: KPM Test Files
@@ -352,9 +353,18 @@ jobs:
     # === Magiskboot ===
     - name: Download magiskboot
       run: |
+        set -euo pipefail
         TAG="${{ env.magiskboot }}"
         ARGS=("-R" "topjohnwu/Magisk" "-p" "Magisk*.apk" "-O" "magisk.apk")
         if [ "$TAG" != "latest" ]; then gh release download "$TAG" "${ARGS[@]}"; else gh release download "${ARGS[@]}"; fi
+        # Verify Magisk APK integrity before extracting magiskboot
+        get_ver() { grep "^$1[[:space:]]*=" version.properties | cut -d'=' -f2 | xargs; }
+        APK_SHA=$(get_ver "Magisk_apk_${{ env.magiskboot }}" || true)
+        if [ -n "$APK_SHA" ]; then
+          echo "$APK_SHA  magisk.apk" | sha256sum -c -
+        else
+          echo "::warning::No SHA256 pinned for Magisk APK in version.properties — skipping verification"
+        fi
         unzip -p magisk.apk 'lib/arm64-v8a/libmagiskboot.so' > module/bin/magiskboot
         rm magisk.apk
 
@@ -428,9 +438,6 @@ jobs:
     - name: Check if valid to release
       id: check_tag
       run: |
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          echo "need_release=false" >> $GITHUB_OUTPUT
-        else
           git fetch --tags
           VERSION="$(jq -r .version update.json)"
           if [ -z "$VERSION" ]; then
@@ -441,7 +448,6 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "need_release=true" >> $GITHUB_OUTPUT
           fi
-        fi
 
   release:
     runs-on: ubuntu-latest
@@ -454,11 +460,14 @@ jobs:
       with:
         name: ${{ env.MODULE_NAME }}-${{ github.run_number }}
         path: ${{ env.MODULE_NAME }}
-    - run: cd ${{ env.MODULE_NAME }} && zip -r ../${{ env.MODULE_NAME }}.zip .
+    - name: Package release artifact
+      run: |
+        set -euo pipefail
+        cd "$MODULE_NAME" && zip -r "../${MODULE_NAME}.zip" .
     - name: Generate changelog
       run: |
-        CHANGELOG_RAW=$(git diff HEAD^ HEAD -- "CHANGELOG.md" | grep '^+[^+]' | sed 's/^+//')
-        { echo "CHANGELOG<<EOF"; echo -e "${CHANGELOG_RAW}"; echo "EOF"; } >> $GITHUB_ENV
+        CHANGELOG_RAW=$(git diff HEAD~1 HEAD -- "CHANGELOG.md" 2>/dev/null | grep '^+[^+]' | sed 's/^+//' || echo 'No changelog')
+        { echo "CHANGELOG<<_CL_EOF_"; echo -e "${CHANGELOG_RAW}"; echo "_CL_EOF_"; } >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ needs.build.outputs.version }}

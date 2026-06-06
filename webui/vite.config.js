@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
-import { createHtmlPlugin } from 'vite-plugin-html'
+import { createHtmlPlugin } from 'vite-plugin-html';
+import { fileURLToPath } from 'url';
 import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Plugin to remove external @import in dev mode (prevents blocking when mui.kernelsu.org is unreachable)
 function removeExternalImports() {

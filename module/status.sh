@@ -19,8 +19,9 @@ set_prop() {
     # Use a different delimiter (|) so values containing "/" don't break sed,
     # and escape both the prop key and value for sed regex.
     # shellcheck disable=SC3001  # ash on Android handles this fine
-    sed "s|^$prop=.*|$prop=$value|" "$file" > "$file.tmp"
-    mv "$file.tmp" "$file"
+    _tmp=$(mktemp "$file.XXXXXX" 2>/dev/null) || _tmp="$file.$$"
+    sed "s|^$prop=.*|$prop=$value|" "$file" > "$_tmp"
+    mv "$_tmp" "$file"
 }
 
 restore_prop_if_needed() {
@@ -39,7 +40,10 @@ fi
 # Detect root manager
 ROOT_MGR="unknown"
 if [ -f "$KPNDIR/root_manager" ]; then
-    ROOT_MGR="$(cat $KPNDIR/root_manager)"
+    # shellcheck disable=SC2086  # $KPNDIR is a controlled constant, but quote anyway
+    ROOT_MGR="$(cat "$KPNDIR/root_manager" 2>/dev/null || true)"
+    _rm_sane="$(printf '%s' "$ROOT_MGR" | tr -cd 'a-z')"
+    [ -n "$_rm_sane" ] && ROOT_MGR="$_rm_sane"
 elif [ -n "$APATCH" ]; then
     ROOT_MGR="apatch"
 elif [ -n "$KSU" ]; then

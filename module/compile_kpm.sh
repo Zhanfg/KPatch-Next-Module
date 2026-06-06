@@ -15,8 +15,9 @@ LOG="$KPNDIR/service.log"
 PATH="$MODDIR/bin:$PATH"
 
 log() {
-    echo "[$(date)] compile_kpm: $1" >> "$LOG"
-    echo "- $1"
+    local msg="$1"
+    echo "[$(date)] compile_kpm: $msg" >> "$LOG"
+    echo "- $msg"
 }
 
 if [ -z "$SRC_DIR" ] || [ ! -d "$SRC_DIR" ]; then
@@ -54,7 +55,18 @@ log "Using compiler: $COMPILER"
 
 # KPM header directory
 KPM_INCLUDE="$KPNDIR/include"
-mkdir -p "$KPM_INCLUDE"
+# P1 fix: mkdir -p on a path that already exists as a symlink would
+# follow the symlink and create the target. A local attacker on the
+# device could pre-stage /data/adb/kp-next/include as a symlink to a
+# privileged path; the heredoc `cat > kpmodule.h` would then write
+# into the attacker's chosen target. Verify the path is a real
+# directory before creating anything inside it.
+if [ -L "$KPM_INCLUDE" ]; then
+    log "ERROR: $KPM_INCLUDE exists as a symlink — refusing to use it"
+    echo "! Refusing to use symlink at $KPM_INCLUDE (possible attack)"
+    exit 1
+fi
+mkdir -p "$KPM_INCLUDE" || { log "Failed to create $KPM_INCLUDE"; exit 1; }
 
 # If kpmodule.h not present, create a minimal version
 if [ ! -f "$KPM_INCLUDE/kpmodule.h" ]; then
@@ -103,8 +115,24 @@ fi
 # For TCC: compile to ELF relocatable .o
 # For clang/gcc: cross-compile for aarch64
 
+# P1 fix: prefer mktemp in a non-shared location and validate.
+# /tmp on Android is often /data/local/tmp (world-writable); a
+# symlink-attack by another uid could pre-create the target dir.
+# Use KPNDIR (owned by root/KSU) as the primary template; fall back
+# to /tmp if mktemp on KPNDIR fails for some reason.
+TMPDIR=$(mktemp -d "$KPNDIR/kpm_build.XXXXXX" 2>/dev/null) || \
 TMPDIR=$(mktemp -d /tmp/kpm_build.XXXXXX)
-trap 'rm -rf "$TMPDIR"' EXIT
+# P1 fix: use a named cleanup function so the trap string is
+# literal (no expansion at trap-registration time). Without this,
+# if TMPDIR was empty/unset when the trap fired, the trap expanded
+# to `rm -rf ""` and, worse, *no* arg means rm recursively deletes
+# the current working directory.
+cleanup() {
+    if [ -n "$1" ] && [ -d "$1" ]; then
+        rm -rf "$1"
+    fi
+}
+trap 'cleanup "$TMPDIR"' EXIT
 
 OBJ_FILE="$TMPDIR/module.o"
 # P1-Cluster B fix: add -fPIC so clang/aarch64 doesn't fail on .kpm
@@ -119,6 +147,10 @@ if [ "$COMPILER" = "tcc" ]; then
 else
     # clang/gcc: need aarch64 target
     ARCH=$(getprop ro.product.cpu.abi 2>/dev/null)
+    if [ -z "$ARCH" ]; then
+        log "Could not detect CPU ABI (getprop unavailable or returned empty)"
+        exit 1
+    fi
     if [ "$ARCH" = "arm64-v8a" ]; then
         # Native compilation on arm64 device
         # shellcheck disable=SC2086
@@ -137,6 +169,18 @@ if [ "$compile_rc" -ne 0 ] || [ ! -f "$OBJ_FILE" ]; then
 fi
 
 # Copy output
-cp "$OBJ_FILE" "$OUTPUT"
+# P1 fix: validate $OUTPUT before use. The script's caller passes
+# $2 directly into cp, so an `id=../../foo` style KPM could write
+# outside the module's own dir. Reject any path with traversal
+# sequences or shell metachars.
+case "$OUTPUT" in
+    "") log "ERROR: empty OUTPUT path"; exit 1 ;;
+    *..*)  log "ERROR: OUTPUT path contains '..': $OUTPUT"; exit 1 ;;
+    *\`)   log "ERROR: OUTPUT path contains backtick: $OUTPUT"; exit 1 ;;
+    *\|*)  log "ERROR: OUTPUT path contains pipe: $OUTPUT"; exit 1 ;;
+    *\;*)  log "ERROR: OUTPUT path contains semicolon: $OUTPUT"; exit 1 ;;
+    *\&\&*) log "ERROR: OUTPUT path contains &&: $OUTPUT"; exit 1 ;;
+esac
+cp "$OBJ_FILE" "$OUTPUT" || { log "ERROR: cp failed: $OBJ_FILE -> $OUTPUT"; exit 1; }
 log "Compiled successfully: $OUTPUT ($(wc -c < "$OUTPUT") bytes)"
 echo "- Compiled: $(basename "$OUTPUT")"

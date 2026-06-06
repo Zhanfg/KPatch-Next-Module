@@ -81,8 +81,9 @@ kpm_verify__log() {
 # This is intentionally written in pure POSIX shell (no awk ord(),
 # no xxd, no perl) so it works on stock Android mksh/toybox/ash.
 kpm_verify__hex_to_bin() {
-    _hex=$1
-    _out=$2
+    local _hex=$1
+    local _out=$2
+    local _i _fmt _expected_sz _actual_sz
     # Reject any non-hex char early.
     case "$_hex" in
         *[!0-9a-fA-F]*) return 1 ;;
@@ -99,7 +100,17 @@ kpm_verify__hex_to_bin() {
         _fmt="${_fmt}\\x$(printf '%s' "$_hex" | cut -c${_i}-$((_i+1)))"
         _i=$((_i + 2))
     done
-    printf "%b" "$_fmt" > "$_out" 2>/dev/null || return 1
+    if ! printf '%b' "$_fmt" > "$_out" 2>/dev/null; then
+        rm -f "$_out" 2>/dev/null
+        return 1
+    fi
+    # Verify output size matches expected binary length.
+    _expected_sz=$(( ${#_hex} / 2 ))
+    _actual_sz=$(wc -c < "$_out" 2>/dev/null)
+    if [ "$_actual_sz" != "$_expected_sz" ]; then
+        rm -f "$_out" 2>/dev/null
+        return 1
+    fi
     return 0
 }
 
@@ -123,6 +134,7 @@ kpm_verify__hex_to_bin() {
 # avoid mktemp to keep the script portable to minimal Android shells
 # without /system/bin/mktemp.
 kpm_verify__require_openssl() {
+    local _probekey _probesig _probeinput _probekeyfile _probesigfile
     if ! command -v openssl >/dev/null 2>&1; then
         return 1
     fi
@@ -157,8 +169,9 @@ kpm_verify__require_openssl() {
 # verify_kpm_sig <kpm_file> <sig_file>
 # Returns 0 if the signature is valid, 1 otherwise.
 verify_kpm_sig() {
-    _kpm=$1
-    _sig=$2
+    local _kpm=$1
+    local _sig=$2
+    local _sig_hex _tmpdir _pub_bin _sig_bin _ok
 
     if [ -z "$_kpm" ] || [ -z "$_sig" ]; then
         kpm_verify__log "missing arguments"
@@ -206,10 +219,16 @@ verify_kpm_sig() {
         _tmpdir=/data/local/tmp/kpm_verify.$$
         mkdir -p "$_tmpdir" 2>/dev/null
     fi
+    # Defend against symlink attack: reject if _tmpdir is a symlink.
+    if [ -L "$_tmpdir" ]; then
+        kpm_verify__log "temp dir is a symlink; possible attack"
+        return 1
+    fi
     if [ ! -d "$_tmpdir" ]; then
         kpm_verify__log "could not create temp dir"
         return 1
     fi
+    trap 'rm -rf "$_tmpdir" 2>/dev/null' EXIT INT TERM HUP
     _pub_bin="$_tmpdir/pub.bin"
     _sig_bin="$_tmpdir/sig.bin"
 
@@ -233,6 +252,7 @@ verify_kpm_sig() {
     fi
 
     rm -rf "$_tmpdir" 2>/dev/null
+    trap - EXIT INT TERM HUP
 
     if [ "$_ok" -eq 0 ]; then
         kpm_verify__log "signature OK: $(basename "$_kpm")"

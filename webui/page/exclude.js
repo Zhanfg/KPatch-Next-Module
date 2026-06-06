@@ -1,5 +1,6 @@
-import { listPackages, getPackagesInfo, exec } from 'kernelsu-alt';
+import { listPackages, getPackagesInfo, exec, toast } from 'kernelsu-alt';
 import { modDir, persistDir, getEnv } from '../index.js';
+import { escapeShell } from '../constants.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
 import { escapeHTML } from '../utils.js';
@@ -212,8 +213,11 @@ async function renderAppList() {
                         });
                     } else {
                         excludedApps.push({ packageName: item.packageName, uid: item.uid });
+                        changed = true; // item not in allApps; keep as-is
                     }
                 });
+                // Detect list expansion (multiple UID matches for one entry).
+                if (!changed && excludedApps.length !== list.length) changed = true;
 
                 if (changed) {
                     saveExcludedList(excludedApps);
@@ -442,7 +446,7 @@ function importExcludeList() {
                 if (parts.length < 4) continue;
                 const pkg = parts[0].trim();
                 const uid = parseInt(parts[3].trim());
-                if (!pkg || isNaN(uid)) continue;
+                if (!pkg || pkg.length > 255 || isNaN(uid) || uid < 0) continue;
                 if (!excludedApps.some(a => a.packageName === pkg && a.uid === uid)) {
                     excludedApps.push({ packageName: pkg, uid });
                     added++;

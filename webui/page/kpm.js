@@ -9,6 +9,8 @@ import {
     getKpmHeroStatus,
     invalidateKpmStatsCache,
 } from './kpm_stats.js';
+import { checkKpmUpdates, renderUpdateBadge } from './kpm-update.js';
+import { installFromRepo as installFromRepoCatalog, getAllRepoModules } from './kpm_repo.js';
 
 let allKpms = [];
 let searchQuery = '';
@@ -19,7 +21,7 @@ let redirectShown = false;
 let dashboardTimer = null;
 
 async function getKpmInfo(path) {
-    const result = await exec(`kptools -l -M "${path}"`, { env: { PATH: `${modDir}/bin` } });
+    const result = await exec(`kptools -l -M ${escapeShell(path)}`, { env: { PATH: `${modDir}/bin` } });
     if (import.meta.env.DEV) { // vite debug
         result.stdout = 'name=Test Module\nversion=1.0.0\ndescription=This is a test module\nauthor=KOWX712\nlicense=MIT\nargs=test';
     }
@@ -56,11 +58,11 @@ async function getKpmList() {
         ];
     }
 
-    const listResult = await exec(`kpatch kpm list && sh "${modDir}/status.sh"`, { env: { PATH: `${modDir}/bin:$PATH` } });
+    const listResult = await exec(`kpatch kpm list && sh ${escapeShell(modDir + '/status.sh')}`, { env: { PATH: `${modDir}/bin:$PATH` } });
     const modules = listResult.stdout.trim().split('\n').filter(line => line.trim());
 
     const modulePromises = modules.map(async (moduleName) => {
-        const infoResult = await exec(`kpatch kpm info "${moduleName}"`, { env: { PATH: `${modDir}/bin` } });
+        const infoResult = await exec(`kpatch kpm info ${escapeShell(moduleName)}`, { env: { PATH: `${modDir}/bin` } });
         const infoLines = infoResult.stdout.trim().split('\n');
 
         const moduleInfo = {};
@@ -77,22 +79,22 @@ async function getKpmList() {
 }
 
 async function controlModule(moduleName, action) {
-    const result = await exec(`kpatch kpm ctl0 "${moduleName}" ${escapeShell(action)}`, { env: { PATH: `${modDir}/bin` } });
+    const result = await exec(`kpatch kpm ctl0 ${escapeShell(moduleName)} ${escapeShell(action)}`, { env: { PATH: `${modDir}/bin` } });
     toast(result.errno === 0 ? result.stdout : result.stderr);
 }
 
 function forgetModule(moduleName) {
-    exec(`rm -f "${persistDir}/kpm/${moduleName}.kpm"`);
+    exec(`rm -f ${escapeShell(persistDir + '/kpm/' + moduleName + '.kpm')}`);
 }
 
 async function unloadModule(moduleName) {
     forgetModule(moduleName);
-    const result = await exec(`kpatch kpm unload "${moduleName}"`, { env: { PATH: `${modDir}/bin` } });
+    const result = await exec(`kpatch kpm unload ${escapeShell(moduleName)}`, { env: { PATH: `${modDir}/bin` } });
     return result.errno === 0;
 }
 
 async function loadModule(modulePath) {
-    const result = await exec(`kpatch kpm load "${modulePath}"`, { env: { PATH: `${modDir}/bin` } });
+    const result = await exec(`kpatch kpm load ${escapeShell(modulePath)}`, { env: { PATH: `${modDir}/bin` } });
     return result.errno === 0;
 }
 
@@ -104,6 +106,54 @@ async function refreshKpmList() {
     allKpms = await getKpmList();
     renderKpmList();
     refreshKpmDashboard();
+    // KPM update diff is run separately by initInfo() once the repo
+    // catalog has been fetched — see annotateInstalledKpmWithUpdates().
+    // We don't run it here so refreshKpmList() stays synchronous-ish.
+}
+
+/**
+ * Diff installed KPMs against the (already-fetched) repo catalog and
+ * attach an "update" badge + action to the matching installed cards.
+ *
+ * Called from initInfo() (index.js) after both the installed list and
+ * the repo catalog are loaded. We key on module name because that's
+ * what kpm.js renders on the card; the diff from kpm-update.js keys
+ * on module.prop `id`. For the typical case where id == name this
+ * is a direct match; for divergent ids we fall back to skipping.
+ */
+async function annotateInstalledKpmWithUpdates() {
+    try {
+        const repoModules = getAllRepoModules();
+        const { updates } = await checkKpmUpdates(repoModules);
+        if (updates.length === 0) return;
+        const list = document.getElementById('kpm-list');
+        if (!list) return;
+        const byName = new Map();
+        for (const u of updates) {
+            byName.set(u.name, u);
+            byName.set(u.id, u); // tolerate id == name
+        }
+        for (const card of list.querySelectorAll('.module-card')) {
+            const nameEl = card.querySelector('.module-card-title');
+            const name = nameEl ? nameEl.textContent.trim() : '';
+            const update = byName.get(name);
+            if (!update) continue;
+            renderUpdateBadge(card, update, (u) => {
+                // Delegate to the existing install path. The kpm_repo
+                // module already sanitizes the URL and enforces the
+                // 50 MiB cap; we just rebuild a minimal entry shape.
+                installFromRepoCatalog({
+                    id: u.id,
+                    name: u.name,
+                    version: u.latest,
+                    downloadUrl: u.downloadUrl,
+                    _repo: u.repo,
+                });
+            });
+        }
+    } catch (_) {
+        // Diff failed (no perm, no repo, parse error) — silently skip.
+    }
 }
 
 const kpmItemMap = new Map();
@@ -129,9 +179,9 @@ async function renderCardDashboard(card, name) {
     const stateKey = `kpm_state_${stats.state}`;
     const stateText = getString(stateKey);
     const lastEvtText = stats.lastEvent
-        ? (stats.lastEvent.ageSec < 60
+        ? (stats.lastEventAgeSec < 60
             ? getString('kpm_stat_just_now')
-            : formatUptime(stats.lastEvent.ageSec))
+            : formatUptime(stats.lastEventAgeSec))
         : '—';
 
     // Use textContent to assign state class to avoid innerHTML-driven
@@ -247,7 +297,7 @@ async function openKpmFullDashboard(name) {
         ['kpm_stat_size', formatSize(stats.size)],
         ['kpm_stat_uptime', stats.uptimeText],
         ['kpm_stat_last_event', stats.lastEvent
-            ? formatUptime(stats.lastEvent.ageSec) + ' (' + stats.lastEvent.type + ')'
+            ? formatUptime(stats.lastEventAgeSec) + ' (' + stats.lastEventType + ')'
             : '—'],
         ['kpm_stat_filters', String(stats.filterCount)],
         ['kpm_stat_errors', String(stats.errorCount)],
@@ -493,7 +543,8 @@ async function uploadFile(file, targetPath, onProgress, signal) {
         }
     });
 
-    await exec(`mkdir -p "$(dirname "${targetPath}")"`);
+    const targetDir = targetPath.replace(/\/[^/]*$/, '');
+    await exec(`mkdir -p ${escapeShell(targetDir)}`);
 
     let uploadedBytes = 0;
     let nextChunkIdx = 0;
@@ -513,8 +564,27 @@ async function uploadFile(file, targetPath, onProgress, signal) {
         });
 
         const partPath = `${targetPath}.part${index.toString().padStart(8, '0')}`;
+        // P0-18: previous form interpolated `${base64}` straight into
+        // a single-quoted shell argument. Standard base64 alphabet
+        // (A-Z a-z 0-9 + / =) doesn't contain `'`, so the immediate
+        // shell-metachar risk is low — BUT:
+        //   * if base64 ever grew non-canonical bytes (URL-safe
+        //     alphabet uses `-_`, multibase prefixes, padding edge
+        //     cases) we'd be a quote-escape away from arbitrary
+        //     command execution as root via the WebView bridge.
+        //   * the user-selected file *content* flows through
+        //     FileReader into this base64 string. An attacker-
+        //     controlled .kpm with a pathologically constructed
+        //     header could exploit future code paths.
+        // Sanity-check that the chunk is canonical base64, then
+        // pipe it through `<<<` (here-string, mksh extension) so
+        // the data is never on the argv / shell-evaluated line.
+        const _safeChunk = String(base64).replace(/[^A-Za-z0-9+/=]/g, '');
+        if (_safeChunk.length !== String(base64).length) {
+            throw new Error('base64 chunk contains non-canonical chars');
+        }
         const result = await spawnWithTimeout(
-            `echo '${base64}' | base64 -d > "${partPath}"`,
+            `base64 -d > "${partPath}" <<<"${_safeChunk}"`,
             CHUNK_TIMEOUT_MS
         );
 
@@ -673,7 +743,7 @@ async function installKpmZip(file, onProgress, signal) {
     const safeName = sanitizeFilename(file.name);
     const tmpPath = `${modDir}/tmp/${safeName}`;
     try {
-        await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
+        await exec(`mkdir -p ${escapeShell(modDir + '/tmp')} && rm -rf ${escapeShell(modDir + '/tmp')}/*`);
         await uploadFile(file, tmpPath, onProgress, signal);
 
         toast(getString('msg_installing_kpm'));
@@ -693,7 +763,7 @@ async function installKpmZip(file, onProgress, signal) {
     } catch (e) {
         toast(getString('msg_error', e.message));
     } finally {
-        exec(`rm -rf ${modDir}/tmp`);
+        exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
     }
 }
 
@@ -701,7 +771,7 @@ async function loadKpmFile(file, onProgress, signal) {
     const safeName = sanitizeFilename(file.name);
     const tmpPath = `${modDir}/tmp/${safeName}`;
     try {
-        await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
+        await exec(`mkdir -p ${escapeShell(modDir + '/tmp')} && rm -rf ${escapeShell(modDir + '/tmp')}/*`);
         await uploadFile(file, tmpPath, onProgress, signal);
         const info = await getKpmInfo(tmpPath);
         if (info && info.name) {
@@ -712,7 +782,7 @@ async function loadKpmFile(file, onProgress, signal) {
 
             dialog.querySelector('.cancel').onclick = () => {
                 dialog.close();
-                exec(`rm -rf ${modDir}/tmp`);
+                exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
             };
 
             dialog.querySelector('.confirm').onclick = async () => {
@@ -747,10 +817,10 @@ async function loadKpmFile(file, onProgress, signal) {
             dialog.show();
         } else {
             toast(getString('msg_failed_get_module_info'));
-            exec(`rm -rf ${modDir}/tmp`);
+            exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
         }
     } catch (e) {
-        exec(`rm -rf ${modDir}/tmp`);
+        exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
         throw e;
     }
 }
@@ -818,4 +888,4 @@ export function initKPMPage() {
     startDashboardAutoRefresh();
 }
 
-export { loadModule, refreshKpmList, handleFileUpload, uploadFile }
+export { loadModule, refreshKpmList, handleFileUpload, uploadFile, annotateInstalledKpmWithUpdates }

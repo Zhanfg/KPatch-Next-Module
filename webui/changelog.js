@@ -2,7 +2,7 @@
 // The version and entries are bundled into the WebUI; the full changelog
 // remains at the GitHub URL (set in update.json).
 
-import { getString } from './language.js';
+import { escapeHTML } from './utils.js';
 import { linkRedirect } from './constants.js';
 
 const LAST_SEEN_KEY = 'kp-next_changelog_last_seen';
@@ -61,9 +61,9 @@ export function maybeShowChangelog() {
             .map(line => {
                 // Sub-bullets start with two spaces + "-"
                 if (line.startsWith('  -')) {
-                    return `<li class="changelog-sub">${escapeHtml(line.replace(/^\s*-\s*/, ''))}</li>`;
+                    return `<li class="changelog-sub">${escapeHTML(line.replace(/^\s*-\s*/, ''))}</li>`;
                 }
-                return `<li>${escapeHtml(line)}</li>`;
+                return `<li>${escapeHTML(line)}</li>`;
             })
             .join('');
     }
@@ -78,21 +78,13 @@ export function maybeShowChangelog() {
         try { localStorage.setItem(LAST_SEEN_KEY, newest.version); } catch (_) {}
         dialog.close();
     };
-    dialog.querySelector('.changelog-close')?.addEventListener('click', close);
+    dialog.querySelector('.changelog-close')?.addEventListener('click', close, { once: true });
     dialog.addEventListener('close', () => {
         try { localStorage.setItem(LAST_SEEN_KEY, newest.version); } catch (_) {}
     }, { once: true });
 
     // Defer the open so it doesn't fight the splash animation.
     setTimeout(() => dialog.show(), 600);
-}
-
-function escapeHtml(s) {
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
 }
 
 /**

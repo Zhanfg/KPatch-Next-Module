@@ -36,6 +36,7 @@ try {
 import { setupRoute } from './route.js';
 import { getString, loadTranslations } from './language.js';
 import { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize } from './constants.js';
+import { sanitizeUrl } from './utils.js';
 // NOTE: PR3 deferred this to a future iteration. The 6 page modules
 // below are eagerly imported because switching to dynamic import()
 // would require changing switchPage() in route.js to handle a promise.
@@ -58,6 +59,7 @@ import * as stealthModule from './page/stealth.js';
 import { maybeShowChangelog } from './changelog.js';
 import { initThemeSettings } from './theme.js';
 import { maybeNotifyUpdate, checkForUpdates } from './update-check.js';
+import { autoCheckKpmUpdates } from './page/kpm-update.js';
 
 // Re-export for any code still importing from index.js
 export { modDir, persistDir, escapeShell, linkRedirect, getMaxChunkSize };
@@ -124,7 +126,9 @@ export async function initInfo() {
     } catch (_) {}
 }
 
+const VALID_REBOOT_REASONS = new Set(['', 'recovery', 'bootloader', 'download', 'edl']);
 async function reboot(reason = "") {
+    if (!VALID_REBOOT_REASONS.has(reason)) reason = "";
     if (reason === "recovery") {
         await exec("/system/bin/input keyevent 26");
     }
@@ -222,7 +226,9 @@ async function updateRehookStatus() {
 function setRehookMode(isEnable) {
     const rehook = document.getElementById('rehook');
     const rehookSwitch = rehook?.querySelector('md-switch');
-    const mode = isEnable ? "enable" : "disable";
+    // Defensive: coerce any truthy input to one of the two known values
+    // before interpolating into a shell command.
+    const mode = isEnable === true ? "enable" : "disable";
     exec(
         `kpatch rehook ${mode} && echo ${mode} > ${escapeShell(persistDir + '/rehook')} && sh ${escapeShell(modDir + '/status.sh')}`,
         { env: { PATH: `${modDir}/bin:$PATH` } }
@@ -392,7 +398,27 @@ function initRepoSettings() {
                 dialog?.querySelector('.update-download')?.addEventListener('click', () => {
                     dialog.close();
                     if (result.remote.zipUrl) {
-                        exec(`am start -a android.intent.action.VIEW -d ${result.remote.zipUrl}`)
+                        // P0-13: result.remote.zipUrl comes from
+                        // network-fetched update.json — controlled by
+                        // whoever serves the release. A MITM or
+                        // compromised mirror could swap the URL for
+                        // something like `; rm -rf /data;` and the
+                        // unescaped template literal would execute
+                        // it as root via `am start`. Force the URL
+                        // through sanitizeUrl (http(s) allowlist) and
+                        // escapeShell (shell-quote) before exec.
+                        const safeUrl = sanitizeUrl(result.remote.zipUrl);
+                        if (!safeUrl) {
+                            toast(getString('update_invalid_url'));
+                            return;
+                        }
+                        // safeUrl is http(s)-only by sanitizeUrl() and
+                        // double-quoted by escapeShell(). The same
+                        // caveat as constants.js#linkRedirect applies
+                        // here: kernelsu-alt.exec is a JS-Native
+                        // bridge, not Node child_process, so
+                        // execFile() / spawn() aren't reachable.
+                        exec(`am start -a android.intent.action.VIEW -d ${escapeShell(safeUrl)}`)
                             .then(() => toast(getString('update_download_started')))
                             .catch(() => toast(getString('update_download_failed')));
                     }
@@ -508,7 +534,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     stealthModule.initStealthPage();
     initRepoSettings();
     initThemeSettings();
-    initUpdateCheck();
+    // P0-4 / P0-12: `initUpdateCheck()` was never defined in the
+    // project. update-check.js only exports `checkForUpdates` and
+    // `maybeNotifyUpdate`. Calling the undefined binding would have
+    // thrown a ReferenceError at DOMContentLoaded, halting every
+    // subsequent line — including maybeNotifyUpdate() further down.
+    // The auto-check is already performed unconditionally below, so
+    // the redundant call here is simply removed.
     initKsuIntegration();
 
     if (splash) {
@@ -523,6 +555,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Background: check update.json and notify if a newer release exists.
     // Errors are silent so this doesn't add toast noise on cold start.
     maybeNotifyUpdate();
+
+    // Background: fetch the Kpm-Repo catalog and diff it against the
+    // installed KPMs. Two outcomes:
+    //   1. The Kpm-Repo page gets populated (lazy on first visit, but
+    //      priming it here means the first visit is instant).
+    //   2. The installed KPM cards in the KPM page get "update" badges.
+    //   3. If any updates are found, a single toast nudges the user.
+    // Errors at any stage are swallowed — a network blip should never
+    // break app init.
+    try {
+        await repoModule.fetchRepo();
+        await kpmModule.annotateInstalledKpmWithUpdates();
+        // autoCheckKpmUpdates returns [] when nothing is new, so the
+        // toast only fires on actual updates. We don't await its
+        // settle — it can run in parallel with whatever page renders
+        // next.
+        autoCheckKpmUpdates().catch(() => {});
+    } catch (_) {
+        // No permission, no network, or repo file missing — all non-fatal.
+    }
 });
 
 // Overwrite default dialog animation

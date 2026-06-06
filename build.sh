@@ -45,7 +45,7 @@ download_assets() {
         local asset_data
         asset_data=$(echo "$release_json" | jq -r ".assets[] | select(.name | test(\"$regex\")) | .name + \"\t\" + .browser_download_url" | head -n 1)
         if [[ -z "$asset_data" ]]; then
-            echo "Error: Could not find asset matching $pattern in $repo $tag" >&2
+            echo "ERROR: Could not find asset matching $pattern in $repo $tag" >&2
             continue
         fi
         local asset_name=$(echo "$asset_data" | cut -f1)
@@ -95,7 +95,10 @@ fi
 if [[ ! -f "module/bin/magiskboot" ]]; then
     download_assets "topjohnwu/Magisk" "$VERSION_MAGISKBOOT" "module/bin" "Magisk*.apk"
 
-    APK=$(ls module/bin/Magisk*.apk | head -n 1)
+    # Use glob expansion directly instead of ls (avoids issues with
+    # filenames containing spaces/newlines and gives a clear error on
+    # no match).
+    APK=$(printf '%s\n' module/bin/Magisk*.apk 2>/dev/null | head -n 1)
     # P0-3 fix: ensure the APK actually exists before unzipping, and fail
     # loudly if libmagiskboot.so is missing from the APK (path has changed
     # historically).

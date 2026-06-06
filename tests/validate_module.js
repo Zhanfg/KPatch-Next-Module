@@ -180,7 +180,7 @@ function parseProperties(content) {
         const eqIdx = trimmed.indexOf('=');
         if (eqIdx > 0) {
             const key = trimmed.slice(0, eqIdx).trim();
-            const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+            const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '').replace(/\s+#.*$/, '');
             result[key] = val;
         }
     }
@@ -318,20 +318,19 @@ function testWebUI() {
 
             // Check en.xml key count
             const enPath = path.join(localesDir, 'en.xml');
+            let enKeyCount = 0;
             if (fs.existsSync(enPath)) {
-                const enKeys = (fs.readFileSync(enPath, 'utf8').match(/name="/g) || []).length;
-                ok(`en.xml has ${enKeys} translation keys`);
+                enKeyCount = (fs.readFileSync(enPath, 'utf8').match(/name="/g) || []).length;
+                ok(`en.xml has ${enKeyCount} translation keys`);
             }
 
             // Check zh-CN completeness
             const zhPath = path.join(localesDir, 'zh-CN.xml');
             if (fs.existsSync(zhPath)) {
                 const zhKeys = (fs.readFileSync(zhPath, 'utf8').match(/name="/g) || []).length;
-                const enPath = path.join(localesDir, 'en.xml');
-                if (fs.existsSync(enPath)) {
-                    const enKeys = (fs.readFileSync(enPath, 'utf8').match(/name="/g) || []).length;
-                    if (zhKeys < enKeys) {
-                        warn(`zh-CN has ${zhKeys} keys, en has ${enKeys} (${enKeys - zhKeys} missing)`);
+                if (enKeyCount > 0) {
+                    if (zhKeys < enKeyCount) {
+                        warn(`zh-CN has ${zhKeys} keys, en has ${enKeyCount} (${enKeyCount - zhKeys} missing)`);
                     } else {
                         ok(`zh-CN complete (${zhKeys} keys)`);
                     }

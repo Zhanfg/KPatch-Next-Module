@@ -45,12 +45,12 @@ command -v magiskboot >/dev/null 2>&1 || { >&2 echo "! Command magiskboot not fo
 command -v kptools >/dev/null 2>&1 || { >&2 echo "! Command kptools not found"; exit 1; }
 
 if [ ! -f kernel ]; then
-echo "- Unpacking boot image"
-magiskboot unpack "$BOOTIMAGE" >/dev/null 2>&1
-  if [ $? -ne 0 ]; then
-    >&2 echo "! Unpack error: $?"
-    exit 1
-  fi
+    echo "- Unpacking boot image"
+    magiskboot unpack "$BOOTIMAGE" >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        >&2 echo "! Unpack error: $?"
+        exit 1
+    fi
 fi
 
 if kptools -i kernel -f | grep -q "CONFIG_KPM=y"; then
@@ -142,8 +142,16 @@ detect_root_chain() {
     # 9. Sanitize string fields: replace " with \", strip control chars.
     # (We never let user-supplied data flow into these fields, but be
     # defensive — this manifest is parsed by the WebUI as JSON.)
+    # P0-8: sed substitution order was inverted. The previous form
+    # escaped `"` first, producing `\\"` for an input like `foo"`,
+    # and then escaped `\` — but the `\` we just inserted for the
+    # quote escape got re-doubled to `\\\\"`, yielding a literal
+    # backslash followed by a quote in the output JSON, which is
+    # invalid (`"foo\"bar"`, not `"foo\\"bar"`). Escape the
+    # backslash FIRST so any later quote-escape produces a clean
+    # `\"` rather than a doubled `\\\"`.
     json_escape() {
-        printf '%s' "$1" | tr -d '\000-\037' | sed 's/"/\\"/g; s/\\/\\\\/g'
+        printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g'
     }
 
     local SAFE_KPSTATE KPSTATE_ESC
@@ -247,8 +255,17 @@ echo "- Manifest draft: $TMP_MANIFEST"
 #      backup). This is the silent re-backup path.
 # ============================================================
 SHOULD_BACKUP=0
-if [ -n "$(kptools -i kernel -l 2>/dev/null | grep patched=false)" ]; then
+# Validate that 'kernel' is a readable, non-empty file before relying on
+# the patched=false check. If 'kernel' is missing or empty (e.g. from a
+# previous failed run), kptools -l would silently produce empty output
+# and we'd skip the backup.
+if [ -s kernel ]; then
+  if [ -n "$(kptools -i kernel -l 2>/dev/null | grep patched=false)" ]; then
     SHOULD_BACKUP=1
+  fi
+else
+  >&2 echo "! kernel file missing or empty before backup check"
+  exit 1
 fi
 
 if [ "$SHOULD_BACKUP" -eq 0 ] && [ "$KP_REBACKUP" = "1" ]; then

@@ -3,7 +3,7 @@
 // KSU-specific paths (profiles, allowlist, module config).
 
 import { exec } from 'kernelsu-alt';
-import { modDir } from './index.js';
+import { modDir, escapeShell } from './index.js';
 
 // KSU well-known paths.
 const KSU_DIR = '/data/adb/ksu';
@@ -56,7 +56,7 @@ export async function detectEnvironment() {
     //    re-rooted yet after flashing KSU).
     if (!result.hasKsu) {
         try {
-            const ls = await exec(`ls ${KSU_DIR} 2>/dev/null`, { env: { PATH: '/system/bin' } });
+            const ls = await exec(`ls ${escapeShell(KSU_DIR)} 2>/dev/null`, { env: { PATH: '/system/bin' } });
             if (ls.errno === 0 && ls.stdout.trim()) {
                 result.hasKsu = true;
                 result.manager = 'ksu';
@@ -68,7 +68,7 @@ export async function detectEnvironment() {
     if (result.hasKsu) {
         for (const pkg of KSU_PACKAGES) {
             try {
-                const pm = await exec(`pm path ${pkg}`, { env: { PATH: '/system/bin' } });
+                const pm = await exec(`pm path ${escapeShell(pkg)}`, { env: { PATH: '/system/bin' } });
                 if (pm.errno === 0 && pm.stdout.trim()) {
                     result.managerPackage = pkg;
                     if (pkg === 'me.weishu.kernelsu') {
@@ -107,7 +107,7 @@ export async function detectEnvironment() {
     // 6. Check module enabled state (KSU sets this via its module system).
     if (result.hasKsu) {
         try {
-            const en = await exec(`cat ${modDir}/disable 2>/dev/null`, { env: { PATH: '/system/bin' } });
+            const en = await exec(`cat ${escapeShell(modDir)}/disable 2>/dev/null`, { env: { PATH: '/system/bin' } });
             result.moduleEnabled = !(en.errno === 0 && en.stdout.trim());
         } catch (_) {}
     }
@@ -130,10 +130,10 @@ export function resetEnvironment() {
  */
 export async function readKsuAllowlist() {
     try {
-        const result = await exec(`cat ${KSU_ALLOWLIST}`, { env: { PATH: '/system/bin' } });
+        const result = await exec(`cat ${escapeShell(KSU_ALLOWLIST)}`, { env: { PATH: '/system/bin' } });
         if (result.errno !== 0) return new Set();
         return new Set(
-            result.stdout.split('\n')
+            result.stdout.split(/\s+/)
                 .map(l => l.trim())
                 .filter(Boolean)
                 .map(Number)
@@ -153,7 +153,7 @@ export async function readKsuAllowlist() {
  */
 export async function readKsuProfile(pkgOrUid) {
     try {
-        const result = await exec(`ksuctl profile get ${pkgOrUid}`, {
+        const result = await exec(`ksuctl profile get ${escapeShell(pkgOrUid)}`, {
             env: { PATH: `${modDir}/bin:/system/bin` }
         });
         if (result.errno !== 0 || !result.stdout.trim()) return null;

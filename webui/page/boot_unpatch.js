@@ -9,10 +9,10 @@
  * Created to fix the AK3-re-flash / re-install edge cases where a
  * stale backup could destroy user data without warning.
  */
-import { exec, spawn, toast } from 'kernelsu-alt';
+import { exec, toast } from 'kernelsu-alt';
 import { modDir, persistDir, escapeShell } from '../constants.js';
 import { getString } from '../language.js';
-import { escapeHTML, formatSize } from '../utils.js';
+import { formatSize } from '../utils.js';
 
 // Path conventions shared with boot_patch.sh / boot_unpatch.sh.
 const BACKUP_DIR = `${persistDir}/backup`;
@@ -117,7 +117,8 @@ async function readLatestBackupInfo() {
  * boot_patch.sh — never user-supplied data.
  */
 function extractJsonString(text, key) {
-    const re = new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 'i');
+    const safeKey = key.replace(/[^a-zA-Z0-9_]/g, '');
+    const re = new RegExp(`"${safeKey}"\\s*:\\s*"([^"]*)"`, 'i');
     const m = text.match(re);
     return m ? m[1] : null;
 }
@@ -211,12 +212,14 @@ export async function confirmAutoUnpatch() {
     return new Promise((resolve) => {
         const cancelBtn = dialog.querySelector('.cancel');
         const confirmBtn = dialog.querySelector('.confirm');
-        // Clone the confirm button to drop any previous handler.
+        // Clone both buttons to drop any previous handlers.
         const newConfirm = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+        const newCancel = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
 
         newConfirm.onclick = () => { dialog.close(); resolve(true); };
-        cancelBtn.onclick = () => { dialog.close(); resolve(false); };
+        newCancel.onclick = () => { dialog.close(); resolve(false); };
 
         dialog.show();
     });

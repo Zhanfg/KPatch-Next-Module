@@ -6,47 +6,14 @@
 import { exec, toast } from 'kernelsu-alt';
 import { modDir } from './index.js';
 import { getString } from './language.js';
-import { escapeShell, sanitizeUrl } from './utils.js';
+import { escapeShell } from './constants.js';
+import { sanitizeUrl, compareVersions } from './utils.js';
 
 const FETCH_TIMEOUT_MS = 8000;
 
-/**
- * Parse "v0.2.4" or "0.2.4" or "0.2.4-beta1" into [0, 2, 4, ...] for
- * semver-style compare. Pre-release tags are sorted as: final > rc > beta > alpha.
- */
-function parseVersion(s) {
-    if (!s) return null;
-    const m = String(s).trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/i);
-    if (!m) return null;
-    const [, major, minor, patch, pre] = m;
-    // Pre-release rank: 0 (no pre), 4 (final), 3 (rc), 2 (beta), 1 (alpha)
-    let preRank = 4;
-    if (pre) {
-        const tag = pre.toLowerCase();
-        if (tag.startsWith('rc')) preRank = 3;
-        else if (tag.startsWith('beta')) preRank = 2;
-        else if (tag.startsWith('alpha')) preRank = 1;
-        else preRank = 0; // unknown tag, sort lowest
-    }
-    return [
-        parseInt(major, 10),
-        parseInt(minor, 10),
-        parseInt(patch, 10),
-        pre ? 0 : 1, // 0 if pre-release, 1 if final
-        preRank,
-    ];
-}
-
-function compareVersions(a, b) {
-    const av = parseVersion(a);
-    const bv = parseVersion(b);
-    if (!av || !bv) return 0;
-    for (let i = 0; i < Math.max(av.length, bv.length); i++) {
-        const diff = (av[i] || 0) - (bv[i] || 0);
-        if (diff !== 0) return diff;
-    }
-    return 0;
-}
+// parseVersion / compareVersions live in utils.js — single source of truth
+// shared with the KPM update checker (page/kpm-update.js) so semver rules
+// stay consistent between the module self-update and per-KPM updates.
 
 /**
  * Read the local module.prop to get the current version. Use kpatch's
@@ -57,7 +24,7 @@ async function getLocalVersion() {
     // Read module.prop via shell. cat + grep is sufficient; no need for
     // a JSON parser since the format is stable.
     const result = await exec(
-        `grep '^version=' ${modDir}/module.prop | head -1 | cut -d= -f2-`,
+        `grep '^version=' ${escapeShell(modDir + '/module.prop')} | head -1 | cut -d= -f2-`,
         { env: { PATH: `${modDir}/bin` } }
     );
     if (result.errno !== 0 || !result.stdout.trim()) return null;
@@ -72,14 +39,14 @@ async function getLocalVersion() {
 async function fetchRemoteInfo() {
     // Read the updateJson URL from module.prop so we don't hard-code it.
     const urlResult = await exec(
-        `grep '^updateJson=' ${modDir}/module.prop | head -1 | cut -d= -f2-`,
+        `grep '^updateJson=' ${escapeShell(modDir + '/module.prop')} | head -1 | cut -d= -f2-`,
         { env: { PATH: `${modDir}/bin` } }
     );
     if (urlResult.errno !== 0 || !urlResult.stdout.trim()) return null;
     const url = urlResult.stdout.trim();
 
     const result = await exec(
-        `curl -fsL --max-time 8 "${url}"`,
+        `curl -fsL --max-time ${Math.ceil(FETCH_TIMEOUT_MS / 1000)} ${escapeShell(url)}`,
         { env: { PATH: `${modDir}/bin:/system/bin:$PATH` } }
     );
     if (result.errno !== 0 || !result.stdout.trim()) return null;

@@ -1,5 +1,5 @@
 import { exec, toast } from 'kernelsu-alt';
-import { persistDir, modDir, escapeShell } from '../index.js';
+import { persistDir, modDir, escapeShell } from '../constants.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
 import { escapeHTML, formatSize } from '../utils.js';
@@ -13,7 +13,7 @@ async function getBackupList() {
     const items = result.stdout.trim().split('\n').map(line => {
         const parts = line.trim().split(/\s+/);
         if (parts.length < 8) return null;
-        const size = parseInt(parts[4]);
+        const size = parseInt(parts[4], 10);
         const name = parts.slice(7).join(' ');
         if (!name.endsWith('.img')) return null;
         const dateMatch = name.match(/boot_backup_(\d{10})\.img/);
@@ -75,6 +75,18 @@ async function refreshBackupList() {
 
     emptyMsg.classList.add('hidden');
 
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); toast(getString('msg_hash_copied')); }
+        catch (_) { toast(getString('msg_hash_copy_failed')); }
+        document.body.removeChild(ta);
+    }
+
     backups.forEach(backup => {
         const card = document.createElement('div');
         card.className = 'card module-card';
@@ -118,18 +130,6 @@ async function refreshBackupList() {
             };
         }
 
-        const fallbackCopy = (text) => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); toast(getString('msg_hash_copied')); }
-            catch (_) { toast(getString('msg_hash_copy_failed')); }
-            document.body.removeChild(ta);
-        };
-
         card.querySelector('.save-btn').onclick = async () => {
             // Strip any directory components — backup.name must be a basename only,
             // otherwise a malicious or malformed ls entry could write outside Download/.
@@ -146,6 +146,18 @@ async function refreshBackupList() {
         };
 
         card.querySelector('.delete-btn').onclick = async () => {
+            const confirmed = await new Promise(resolve => {
+                const dlg = document.getElementById('purge-dialog');
+                // Reuse the purge dialog for confirmation
+                const preview = dlg.querySelector('.purge-preview, #purge-preview');
+                const confirmBtn = dlg.querySelector('.confirm');
+                const cancelBtn = dlg.querySelector('.cancel');
+                preview.textContent = getString('confirm_delete_backup', backup.name);
+                confirmBtn.onclick = () => { dlg.close(); resolve(true); };
+                cancelBtn.onclick = () => { dlg.close(); resolve(false); };
+                dlg.show();
+            });
+            if (!confirmed) return;
             const baseName = String(backup.name).split('/').pop().split('\\').pop();
             await exec(`rm -f ${escapeShell(BACKUP_DIR + '/' + baseName)}`);
             toast(getString('msg_backup_deleted'));
@@ -179,7 +191,7 @@ async function openPurgeDialog() {
     const cancelBtn = dialog.querySelector('.cancel');
 
     const updatePreview = async () => {
-        const count = parseInt(keepInput.value) || 3;
+        const count = parseInt(keepInput.value, 10) || 3;
         const backups = await getBackupList();
         const toDelete = backups.slice(count); // older = after the N newest
         if (toDelete.length === 0) {
@@ -198,7 +210,7 @@ async function openPurgeDialog() {
 
     cancelBtn.onclick = () => dialog.close();
     confirmBtn.onclick = async () => {
-        const count = parseInt(keepInput.value) || 3;
+        const count = parseInt(keepInput.value, 10) || 3;
         // Refresh the list to get the current order.
         const backups = await getBackupList();
         const toDelete = backups.slice(count);

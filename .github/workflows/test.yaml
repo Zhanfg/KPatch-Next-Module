@@ -34,9 +34,10 @@ jobs:
         # SC2115: rm -rf with variable — these paths are always absolute
         # SC2046: unquoted command substitution — inherited from APatch scripts
         # SC2319: $? in condition — inherited from APatch scripts
-        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319 \
-          module/service.sh module/customize.sh module/post-fs-data.sh module/action.sh module/status.sh module/uninstall.sh
-        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319 \
+        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319,SC2155 \
+          module/service.sh module/customize.sh module/post-fs-data.sh module/action.sh module/status.sh module/uninstall.sh \
+          module/install_kpm.sh module/compile_kpm.sh
+        shellcheck -s sh -S warning --exclude=SC3043,SC2034,SC2115,SC2046,SC2319,SC2155 \
           module/patch/boot_patch.sh module/patch/boot_extract.sh module/patch/boot_unpatch.sh
         # util_functions.sh has many inherited patterns from APatch, only check for errors
         shellcheck -s sh -S error module/patch/util_functions.sh || true
@@ -57,6 +58,13 @@ jobs:
         cache: pnpm
         cache-dependency-path: webui/pnpm-lock.yaml
 
+    # P0-3 informational: webui-build does no binary downloads, so
+    # the SHA256-verification step that lives in build.yaml's
+    # arm64-test job is not duplicated here. pnpm's --frozen-lockfile
+    # (line 61) already pins every package by its registry-provided
+    # integrity hash; that is the canonical WebUI supply-chain guard.
+    # The build.yaml release pipeline remains the single source of
+    # truth for binary SHA256 verification.
     - name: Install dependencies
       run: cd webui && pnpm install --frozen-lockfile
 
@@ -125,7 +133,9 @@ jobs:
     - name: Verify all referenced script files exist
       run: |
         FAIL=0
-        for f in module/service.sh module/customize.sh module/post-fs-data.sh module/action.sh module/status.sh module/uninstall.sh module/patch/boot_patch.sh module/patch/boot_extract.sh module/patch/boot_unpatch.sh module/patch/util_functions.sh module/module.prop; do
+        for f in module/service.sh module/customize.sh module/post-fs-data.sh module/action.sh module/status.sh module/uninstall.sh \
+                 module/install_kpm.sh module/compile_kpm.sh \
+                 module/patch/boot_patch.sh module/patch/boot_extract.sh module/patch/boot_unpatch.sh module/patch/util_functions.sh module/module.prop; do
           if [ ! -f "$f" ]; then
             echo "::error::Referenced file missing: $f"
             FAIL=1

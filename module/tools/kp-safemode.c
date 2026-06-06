@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 // kp-safemode: minimal helper to query Android safe-mode state via the
 // KernelPatch supercall. Prints "0" or "1" on stdout. Exits 0 on success.
 //
@@ -46,10 +47,11 @@ int main(void)
 {
     long kpver = probe_kp_version();
     if (kpver < 0) {
+        int saved_errno = errno;
         // Not installed, or no permission. kpatch's hello() returns the same
         // negative values; the WebUI will display "Not installed" when this
         // helper exits non-zero.
-        fprintf(stderr, "supercall failed: errno=%d (%s)\n", errno, strerror(errno));
+        fprintf(stderr, "supercall failed: errno=%d (%s)\n", saved_errno, strerror(saved_errno));
         return 1;
     }
 
@@ -59,8 +61,9 @@ int main(void)
     long result = syscall(KP_NR_SUPERCALL, "su",
                           make_cmd((uint32_t)kpver, SUPERCALL_SU_GET_SAFEMODE));
     if (result < 0) {
+        int saved_errno = errno;
         fprintf(stderr, "safemode supercall returned %ld (errno=%d %s)\n",
-                result, errno, strerror(errno));
+                result, saved_errno, strerror(saved_errno));
         return 1;
     }
 

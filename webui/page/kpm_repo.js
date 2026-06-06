@@ -2,6 +2,7 @@ import { exec, toast } from 'kernelsu-alt';
 import { modDir, persistDir } from '../index.js';
 import { getString } from '../language.js';
 import { setupPullToRefresh } from '../pull-to-refresh.js';
+import { escapeShell } from '../constants.js';
 import { escapeHTML, sanitizeUrl, formatSize } from '../utils.js';
 
 // Default KPM repository URL — points to the standalone Kpm-Repo on the
@@ -95,6 +96,16 @@ function setRepos(repos) {
 }
 
 /**
+ * Snapshot accessor for the in-memory repo catalog. Returns a shallow
+ * copy so callers (notably kpm-update.js) can iterate without risk
+ * of being mutated by a concurrent fetchRepo(). Returns [] before the
+ * first fetchRepo() resolves.
+ */
+function getAllRepoModules() {
+    return allModules.slice();
+}
+
+/**
  * Backwards-compat shim. The old single-URL API is still imported by
  * index.js for the Settings detail line; redirect to the primary repo.
  *
@@ -153,7 +164,7 @@ async function fetchOne(repo) {
     if (!safeUrl) return null;
     try {
         const result = await exec(
-            `curl -sL --max-time 10 "${safeUrl}"`,
+            `curl -sL --max-time 10 ${escapeShell(safeUrl)}`,
             { env: { PATH: `${modDir}/bin:/system/bin:$PATH` } }
         );
         if (result.errno !== 0 || !result.stdout.trim()) return null;
@@ -178,7 +189,7 @@ function renderRepoList() {
 
     emptyMsg.classList.add('hidden');
 
-    allModules.forEach(mod => {
+    allModules.forEach((mod, idx) => {
         const card = document.createElement('div');
         card.className = 'card module-card';
         const sizeStr = mod.size ? formatSize(mod.size) : '';
@@ -219,6 +230,7 @@ function renderRepoList() {
             </div>
         `;
 
+        card.dataset.idx = idx;
         card.querySelector('.install-btn').onclick = () => installFromRepo(mod);
         container.appendChild(card);
     });
@@ -244,12 +256,12 @@ async function installFromRepo(mod) {
         const filename = sanitizeFilename(mod.id || mod.name) + '.zip';
         const tmpPath = `${modDir}/tmp/${filename}`;
 
-        await exec(`mkdir -p ${modDir}/tmp && rm -rf ${modDir}/tmp/*`);
+        await exec(`mkdir -p ${escapeShell(modDir + '/tmp')} && rm -rf ${escapeShell(modDir + '/tmp')}/*`);
 
         // Download the module. Cap the download at 50 MiB to defend against a
         // malicious or compromised repo that hands us a multi-GB payload.
         const dlResult = await exec(
-            `curl -sL --max-filesize 52428800 "${safeUrl}" -o "${tmpPath}"`,
+            `curl -sL --max-filesize 52428800 ${escapeShell(safeUrl)} -o ${escapeShell(tmpPath)}`,
             { env: { PATH: `/system/bin:$PATH` } }
         );
 
@@ -260,8 +272,8 @@ async function installFromRepo(mod) {
 
         // Install via install_kpm.sh
         const installResult = await exec(
-            `sh "${modDir}/install_kpm.sh" "${tmpPath}"`,
-            { env: { PATH: `${modDir}/bin:$PATH` } }
+            `sh ${escapeShell(modDir + '/install_kpm.sh')} ${escapeShell(tmpPath)}`,
+            { env: { PATH: `${modDir}/bin:/system/bin` } }
         );
 
         if (installResult.errno === 0) {
@@ -272,7 +284,9 @@ async function installFromRepo(mod) {
     } catch (e) {
         toast(getString('msg_error', e.message));
     } finally {
-        exec(`rm -rf ${modDir}/tmp`);
+        try {
+            await exec(`rm -rf ${escapeShell(modDir + '/tmp')}`);
+        } catch (_) { /* best-effort cleanup */ }
     }
 }
 
@@ -281,7 +295,8 @@ function applyFilters() {
     let visibleCount = 0;
 
     const cards = document.querySelectorAll('#repo-list .module-card');
-    cards.forEach((card, idx) => {
+    cards.forEach((card) => {
+        const idx = parseInt(card.dataset.idx, 10);
         const mod = allModules[idx];
         if (!mod) return;
         const matches = (mod.name || '').toLowerCase().includes(query) ||
@@ -385,6 +400,62 @@ function openRepoManager() {
     dialog.show();
 }
 
+/**
+ * Manual "paste a .kpm zip URL" install dialog. This is the
+ * "KPM 像 APM 一样可以通过指定的链接进行更新" entry point that doesn't
+ * require the user to subscribe to a repo first.
+ *
+ * The actual install reuses installFromRepo() — same sanitizeUrl +
+ * 50 MiB cap + install_kpm.sh pipeline, so URL-injection and oversized
+ * payloads are blocked the same way as repo entries.
+ */
+function openUrlInstallDialog() {
+    const dialog = document.getElementById('url-install-dialog');
+    if (!dialog) return;
+    const input = dialog.querySelector('#url-install-input');
+    const confirmBtn = dialog.querySelector('.url-install-confirm');
+    const cancelBtn = dialog.querySelector('.url-install-cancel');
+
+    const close = () => dialog.close();
+    cancelBtn.onclick = close;
+    confirmBtn.onclick = async () => {
+        const url = input.value && input.value.trim();
+        if (!url) {
+            toast(getString('msg_error', 'URL is empty'));
+            return;
+        }
+        const safe = sanitizeUrl(url);
+        if (!safe) {
+            toast(getString('msg_error', 'Invalid URL (http/https only)'));
+            return;
+        }
+        // Derive a placeholder id from the URL path so installFromRepo
+        // can write a sensible filename; install_kpm.sh will overwrite
+        // it with the real id parsed from module.prop inside the zip.
+        let placeholderId = 'manual';
+        try {
+            const u = new URL(safe);
+            const last = u.pathname.split('/').filter(Boolean).pop() || 'manual';
+            placeholderId = last.replace(/\.zip$/i, '') || 'manual';
+        } catch (_) {}
+        confirmBtn.disabled = true;
+        try {
+            await installFromRepo({
+                id: placeholderId,
+                name: placeholderId,
+                version: '0.0.0',
+                downloadUrl: safe,
+            });
+        } finally {
+            confirmBtn.disabled = false;
+            input.value = '';
+            close();
+        }
+    };
+    dialog.show();
+    if (input) input.focus();
+}
+
 export function initRepoPage() {
     // Load the system-managed repo override once at init. We don't
     // await — getRepos() handles the missing/empty case gracefully
@@ -426,7 +497,15 @@ export function initRepoPage() {
         refreshBtn.onclick = fetchRepo;
     }
 
+    // "Install from URL" button — lets users paste a direct .kpm zip
+    // link without subscribing to a repo. Same safety pipeline as
+    // installFromRepo, just a different entry point.
+    const urlInstallBtn = document.getElementById('url-install-btn');
+    if (urlInstallBtn) {
+        urlInstallBtn.onclick = openUrlInstallDialog;
+    }
+
     setupPullToRefresh(document.querySelector('#repo-page .page-content'), fetchRepo);
 }
 
-export { fetchRepo, getRepos, setRepos, openRepoManager };
+export { fetchRepo, getRepos, setRepos, openRepoManager, installFromRepo, getAllRepoModules, openUrlInstallDialog };

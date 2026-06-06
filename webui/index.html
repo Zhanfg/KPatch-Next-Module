@@ -285,7 +285,7 @@
                         </label>
                         <div class="list-item installed-only hidden" id="unsigned-modules-warning">
                             <md-ripple></md-ripple>
-                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" style="fill: #f57c00;"><path d="M109-120 480-920l371 800H109Zm371-86q12 0 21-9t9-21q0-12-9-21t-21-9q-12 0-21 9t-9 21q0 12 9 21t21 9Zm0-96q12 0 21-9t9-21v-128q0-12-9-21t-21-9q-12 0-21 9t-9 21v128q0 12 9 21t21 9Z"/></svg></md-icon>
+                            <md-icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="warning-icon"><path d="M109-120 480-920l371 800H109Zm371-86q12 0 21-9t9-21q0-12-9-21t-21-9q-12 0-21 9t-9 21q0 12 9 21t21 9Zm0-96q12 0 21-9t9-21v-128q0-12-9-21t-21-9q-12 0-21 9t-9 21v128q0 12 9 21t21 9Z"/></svg></md-icon>
                             <div class="list-item-content">
                                 <div slot="headline" data-i18n="title_unsigned_modules_warning">Unsigned KPM modules loaded</div>
                                 <div slot="detail" id="unsigned-modules-detail" class="warning-detail"></div>
@@ -301,6 +301,13 @@
                     <div class="empty-list" id="repo-empty-msg" data-i18n="msg_no_modules_in_repo">No modules available</div>
                 </div>
                 <div class="fab-container">
+                    <!-- Secondary FAB: install a KPM from a direct .kpm zip
+                         URL. Equivalent to "open repo entry" but without
+                         requiring a repo subscription. Wires to
+                         openUrlInstallDialog() in page/kpm_repo.js. -->
+                    <md-fab variant="secondary" aria-label="install from url" id="url-install-btn">
+                        <md-icon slot="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></md-icon>
+                    </md-fab>
                     <md-fab variant="primary" aria-label="refresh" id="repo-refresh">
                         <md-icon slot="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></md-icon>
                     </md-fab>
@@ -517,7 +524,7 @@
             <div slot="headline" data-i18n="title_repo_url">Repository URL</div>
             <div slot="content">
                 <md-outlined-text-field label="URL" id="repo-url-input" type="url"
-                    style="width:100%"></md-outlined-text-field>
+                    style="width: 100%" maxlength="2048"></md-outlined-text-field>
             </div>
             <div slot="actions">
                 <md-text-button class="cancel" data-i18n="button_cancel">Cancel</md-text-button>
@@ -536,6 +543,30 @@
             <div slot="actions">
                 <md-text-button class="repo-cancel" data-i18n="button_cancel">Cancel</md-text-button>
                 <md-filled-button class="repo-save" data-i18n="button_save">Save</md-filled-button>
+            </div>
+        </md-dialog>
+
+        <!-- Manual URL install dialog — opened by openUrlInstallDialog()
+             in page/kpm_repo.js. Wires through installFromRepo() so the
+             sanitizeUrl + 50 MiB cap + install_kpm.sh pipeline is reused
+             unchanged. The dialog text is intentionally minimal: one
+             field for the URL, one button to install, one to cancel. -->
+        <md-dialog id="url-install-dialog">
+            <div slot="headline" data-i18n="title_install_from_url">Install KPM from URL</div>
+            <div slot="content">
+                <md-outlined-text-field
+                    id="url-install-input"
+                    type="url"
+                    label="https://..."
+                    style="width: 100%;">
+                </md-outlined-text-field>
+                <div class="form-hint" data-i18n="hint_install_from_url">
+                    Direct link to a .kpm or .zip file. SHA256-verified modules are preferred.
+                </div>
+            </div>
+            <div slot="actions">
+                <md-text-button class="url-install-cancel" data-i18n="button_cancel">Cancel</md-text-button>
+                <md-filled-button class="url-install-confirm" data-i18n="button_install">Install</md-filled-button>
             </div>
         </md-dialog>
     </div>

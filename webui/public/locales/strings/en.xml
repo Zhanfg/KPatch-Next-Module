@@ -240,6 +240,16 @@
     <string name="kpm_dashboard_full_title">KPM dashboard</string>
     <string name="kpm_dashboard_expand">View full dashboard</string>
 
+    <!-- APM-style update affordances. Rendered by webui/page/kpm-update.js
+         onto installed KPM cards and as a startup toast. -->
+    <string name="kpm_update_badge">Update: %1$s</string>
+    <string name="kpm_update_available_tooltip">Installed: %1$s — newer version available: %2$s</string>
+    <string name="kpm_update_button_title">Install update from repository</string>
+    <string name="kpm_updates_available_toast">%1$d KPM update(s) available — open the KPM page to upgrade</string>
+    <string name="title_install_from_url">Install KPM from URL</string>
+    <string name="hint_install_from_url">Direct link to a .kpm or .zip file. SHA256-verified modules are preferred.</string>
+    <string name="button_install">Install</string>
+
     <!-- Auto-unpatch recovery plan (AK3 hardening) -->
     <string name="title_auto_unpatch">Auto-Unpatch Recovery Plan</string>
     <string name="button_continue">Continue</string>

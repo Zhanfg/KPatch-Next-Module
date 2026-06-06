@@ -72,7 +72,6 @@ body {
     width: 100%;
     display: flex;
     align-items: center;
-    width: 100%;
     padding: 0 8px;
     box-sizing: border-box;
 }
@@ -273,6 +272,10 @@ body {
     font-size: 0.875rem;
     line-height: 1.3;
     word-break: break-word;
+}
+
+.warning-icon {
+    fill: #f57c00;
 }
 
 #unsigned-modules-warning .list-item-content [slot="headline"] {
@@ -937,6 +940,38 @@ md-menu-item label {
     border-radius: 6px;
     font-weight: 500;
     align-self: flex-start;
+}
+
+/* "Update available" badge — rendered by page/kpm-update.js onto
+   installed KPM cards in the KPM page. Distinct color (primary
+   container) so users immediately see the action item, separate
+   from the existing tag-repo / tag-signed tertiary badges. */
+.tag-update {
+    background: var(--md-sys-color-primary-container, #d3e3fd);
+    color: var(--md-sys-color-on-primary-container, #001d35);
+    font-size: 0.72em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 600;
+    align-self: flex-start;
+    cursor: help;
+}
+
+/* Update FAB sits to the left of the primary refresh FAB. The fab-
+   container default gap handles spacing; we just need to make sure
+   both buttons don't overlap on narrow screens. */
+.update-fab-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Hint text under the URL install field. Mirrors the .form-hint used
+   by other dialogs in the project. */
+.form-hint {
+    font-size: 0.8em;
+    color: var(--md-sys-color-on-surface-variant, #42474e);
+    margin-top: 6px;
 }
 
 .tag-stealth-on {
