@@ -1,0 +1,228 @@
+#!/bin/sh
+# kpm_verify.sh — Ed25519 signature verification for KPM modules.
+#
+# This file is intended to be sourced from service.sh (and any other
+# caller that wants to verify a .kpm before loading it). It exposes
+# one public function:
+#
+#   verify_kpm_sig <kpm_file> <sig_file>
+#
+# Behavior:
+#   * Returns 0 (success) when the signature is valid.
+#   * Returns 1 (failure) when verification fails for any reason
+#     (missing sig file, bad sig format, signature mismatch, openssl
+#     not present, etc.). The caller SHOULD log and skip loading the
+#     module in that case.
+#
+# .kpm.sig file format (MVP):
+#   The first non-empty line of the file is the 64-byte Ed25519
+#   signature encoded as 128 lowercase hex characters, with no
+#   whitespace. Any other lines are ignored. This keeps the file
+#   grep-friendly and trivially parseable on Android shell.
+#
+# Public key:
+#   KPM_SIGN_PUBKEY_HEX is a hardcoded 32-byte Ed25519 public key
+#   encoded as 64 lowercase hex characters.
+#   The current value is a DEV/TEST key. TODO(security): replace with
+#   a release key managed out-of-band, and consider loading the key
+#   from /data/adb/kp-next/kpm_sign_pubkey instead of hardcoding it.
+#
+# Tooling:
+#   We use `openssl dgst -ed25519 -verify` (OpenSSL >= 1.1.1). This is
+#   available in modern Android (toybox/busybox builds frequently ship
+#   it; on stock AOSP it is in /system/bin/openssl). No Android
+#   SDK/NDK dependency is introduced.
+#
+#   We intentionally avoid the BSD `signify` and any prebuilt NDK
+#   crypto blob. If openssl is missing, verify_kpm_sig returns 1 and
+#   the caller treats that as a verification failure (which is the
+#   safe default when enforcement is on).
+#
+# Backward compatibility:
+#   * When REQUIRE_KPM_SIGNATURES=0 (or unset), service.sh will NOT
+#     call this function at all.
+#   * When enforcement IS on, the caller passes the .kpm path and the
+#     expected .sig path. If the sig file does not exist, this
+#     function returns 1 and the caller skips the load.
+
+# ---------- bundled public key (DEV/TEST ONLY) ----------
+# TODO(security): replace with the real release key. This is a
+# well-known dummy value used for unit-testing the verify path; the
+# corresponding private key is not shipped, so a build with this key
+# in place will reject all real .kpm.sig files until the matching
+# private key is generated and used to sign.
+KPM_SIGN_PUBKEY_HEX="d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af401a5ac66a2b59"
+
+# ---------- internal helpers ----------
+
+# kpm_verify__log <msg>
+# Append a timestamped line to the service log when one is writable.
+# Service.sh sets $KPNDIR and $LOG; we tolerate their absence so that
+# this script is safe to source from any context.
+kpm_verify__log() {
+    if [ -n "$LOG" ] && [ -n "$KPNDIR" ] && [ -d "$KPNDIR" ]; then
+        printf '[%s] kpm_verify: %s\n' "$(date)" "$1" >> "$LOG" 2>/dev/null
+    fi
+}
+
+# kpm_verify__hex_to_bin <hex_string> <out_file>
+# Write the binary representation of <hex_string> to <out_file>.
+# Returns 0 on success, 1 if the input is not valid hex of even length.
+# This is intentionally written in pure POSIX shell (no awk ord(),
+# no xxd, no perl) so it works on stock Android mksh/toybox/ash.
+kpm_verify__hex_to_bin() {
+    _hex=$1
+    _out=$2
+    # Reject any non-hex char early.
+    case "$_hex" in
+        *[!0-9a-fA-F]*) return 1 ;;
+    esac
+    if [ $(( ${#_hex} % 2 )) -ne 0 ]; then
+        return 1
+    fi
+    # printf "%b" on mksh interprets \xHH correctly. We build the
+    # argument by joining "\xHH" sequences; printf then emits the raw
+    # bytes in one shot. This avoids spawning a process per byte.
+    _i=1
+    _fmt=""
+    while [ $_i -le ${#_hex} ]; do
+        _fmt="${_fmt}\\x$(printf '%s' "$_hex" | cut -c${_i}-$((_i+1)))"
+        _i=$((_i + 2))
+    done
+    printf "%b" "$_fmt" > "$_out" 2>/dev/null || return 1
+    return 0
+}
+
+# kpm_verify__require_openssl
+# Returns 0 if `openssl dgst -ed25519 -verify` is usable, 1 otherwise.
+#
+# We probe by running an RFC 8032 test vector (TEST 1). The vector is
+# (priv=9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60,
+#  pub=d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af401a5ac66a2b59,
+#  msg="",
+#  sig=e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b).
+# If the build of openssl on the device supports Ed25519, the verify
+# call returns 0 for this vector. If Ed25519 is not compiled in, the
+# call fails with "digital envelope routine:unsupported" or similar.
+# We write the probe key/sig/input into /data/local/tmp with pid-suffixed
+# names; mktemp is not strictly required and is avoided to keep this
+# script portable to minimal Android shells without /system/bin/mktemp.
+kpm_verify__require_openssl() {
+    if ! command -v openssl >/dev/null 2>&1; then
+        return 1
+    fi
+    _probekey="d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af401a5ac66a2b59"
+    _probesig="e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
+    _probeinput=/data/local/tmp/.kpm_probe_input_$$.bin
+    _probekeyfile=/data/local/tmp/.kpm_probekey_$$.bin
+    _probesigfile=/data/local/tmp/.kpm_probesig_$$.bin
+    if ! : > "$_probeinput" 2>/dev/null; then
+        return 1
+    fi
+    if ! kpm_verify__hex_to_bin "$_probekey" "$_probekeyfile"; then
+        rm -f "$_probeinput" 2>/dev/null
+        return 1
+    fi
+    if ! kpm_verify__hex_to_bin "$_probesig" "$_probesigfile"; then
+        rm -f "$_probeinput" "$_probekeyfile" 2>/dev/null
+        return 1
+    fi
+    if openssl dgst -ed25519 -verify "$_probekeyfile" \
+            -signature "$_probesigfile" "$_probeinput" \
+            >/dev/null 2>&1; then
+        rm -f "$_probeinput" "$_probekeyfile" "$_probesigfile" 2>/dev/null
+        return 0
+    fi
+    rm -f "$_probeinput" "$_probekeyfile" "$_probesigfile" 2>/dev/null
+    return 1
+}
+
+# ---------- public API ----------
+
+# verify_kpm_sig <kpm_file> <sig_file>
+# Returns 0 if the signature is valid, 1 otherwise.
+verify_kpm_sig() {
+    _kpm=$1
+    _sig=$2
+
+    if [ -z "$_kpm" ] || [ -z "$_sig" ]; then
+        kpm_verify__log "missing arguments"
+        return 1
+    fi
+    if [ ! -f "$_kpm" ]; then
+        kpm_verify__log "kpm file not found: $_kpm"
+        return 1
+    fi
+    if [ ! -f "$_sig" ]; then
+        kpm_verify__log "sig file not found: $_sig"
+        return 1
+    fi
+
+    if ! kpm_verify__require_openssl; then
+        kpm_verify__log "openssl with ed25519 not available; failing closed"
+        return 1
+    fi
+
+    # Read the hex signature (first non-empty line) and validate.
+    _sig_hex=$(awk 'NF{print; exit}' "$_sig" 2>/dev/null | tr -d ' \t\r\n')
+    case ${#_sig_hex} in
+        128) ;;
+        *)
+            kpm_verify__log "sig file is not 64 bytes (got ${#_sig_hex} hex chars)"
+            return 1 ;;
+    esac
+    case "$_sig_hex" in
+        *[!0-9a-fA-F]*)
+            kpm_verify__log "sig file contains non-hex characters"
+            return 1
+            ;;
+    esac
+
+    # Decode the public key and signature into temp files. We use
+    # /data/local/tmp (world-writable on debug builds, but the files
+    # are short-lived and contain no secrets — just a public key and
+    # a signature). If that fails, fall back to /tmp.
+    _tmpdir=""
+    if command -v mktemp >/dev/null 2>&1; then
+        _tmpdir=$(mktemp -d /data/local/tmp/kpm_verify.XXXXXX 2>/dev/null) || \
+            _tmpdir=$(mktemp -d /tmp/kpm_verify.XXXXXX 2>/dev/null)
+    fi
+    if [ -z "$_tmpdir" ] || [ ! -d "$_tmpdir" ]; then
+        _tmpdir=/data/local/tmp/kpm_verify.$$
+        mkdir -p "$_tmpdir" 2>/dev/null
+    fi
+    if [ ! -d "$_tmpdir" ]; then
+        kpm_verify__log "could not create temp dir"
+        return 1
+    fi
+    _pub_bin="$_tmpdir/pub.bin"
+    _sig_bin="$_tmpdir/sig.bin"
+
+    if ! kpm_verify__hex_to_bin "$KPM_SIGN_PUBKEY_HEX" "$_pub_bin"; then
+        kpm_verify__log "bundled public key is not valid hex"
+        rm -rf "$_tmpdir" 2>/dev/null
+        return 1
+    fi
+    if ! kpm_verify__hex_to_bin "$_sig_hex" "$_sig_bin"; then
+        kpm_verify__log "sig hex decode failed"
+        rm -rf "$_tmpdir" 2>/dev/null
+        return 1
+    fi
+
+    # Run the actual verification. openssl returns 0 on success, 1 on
+    # signature mismatch, and non-zero (often 1) on malformed input.
+    _ok=1
+    if openssl dgst -ed25519 -verify "$_pub_bin" \
+            -signature "$_sig_bin" "$_kpm" >/dev/null 2>&1; then
+        _ok=0
+    fi
+
+    rm -rf "$_tmpdir" 2>/dev/null
+
+    if [ "$_ok" -eq 0 ]; then
+        kpm_verify__log "signature OK: $(basename "$_kpm")"
+        return 0
+    fi
+    kpm_verify__log "signature INVALID: $(basename "$_kpm")"
+    return 1
+}

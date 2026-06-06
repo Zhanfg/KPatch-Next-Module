@@ -134,11 +134,22 @@ function renderRepoList() {
         const repoTag = mod._repo && mod._repo !== getString('repo_official')
             ? `<div class="tag tag-repo">${escapeHTML(mod._repo)}</div>`
             : '';
+        // Signature-required badge: shown when the repo entry has
+        // signatureRequired === true. This is a UI hint that the module
+        // ships with a .kpm.sig and will be verified by the boot-time
+        // service.sh before kpatch kpm load. It does NOT by itself
+        // block installation — enforcement is controlled by
+        // REQUIRE_KPM_SIGNATURES in /data/adb/kp-next/config, which the
+        // WebUI cannot read directly.
+        const sigTag = mod.signatureRequired
+            ? `<div class="tag tag-signed" title="Signed (Ed25519)">${getString('tag_signed')}</div>`
+            : '';
         card.innerHTML = `
             <div class="module-card-header">
                 <div class="flex-header">
                     <div class="module-card-title">${escapeHTML(mod.name || mod.id)}</div>
                     ${repoTag}
+                    ${sigTag}
                 </div>
                 <div class="module-card-subtitle">${escapeHTML(mod.version || '0.0.0')} ${sizeStr ? '· ' + sizeStr : ''}</div>
                 <div class="module-card-subtitle">${getString('info_author', escapeHTML(mod.author) || getString('msg_unknown'))}</div>

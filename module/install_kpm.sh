@@ -107,6 +107,24 @@ if [ -n "$KPM_FILES" ]; then
     KPM_BASENAME=$(basename "$KPM_FILE")
     cp "$KPM_FILE" "$KPM_DIR/${MOD_ID}.kpm"
     log "Binary module installed: $KPM_DIR/${MOD_ID}.kpm"
+
+    # If a matching .kpm.sig is present in the ZIP, copy it alongside
+    # the binary so service.sh can verify the load on the next boot.
+    # The verifier looks for $KPM_DIR/${MOD_ID}.kpm.sig specifically.
+    # The sig file (if any) is the one whose basename is the kpm's
+    # basename + ".sig"; we look it up by name rather than the first
+    # .sig found in the ZIP, to support multi-kpm ZIPs cleanly.
+    _kpm_stem=$(printf '%s' "$KPM_BASENAME" | sed -E 's/\.(kpm|ko|o)$//')
+    for _sig in "$TMPDIR/${_kpm_stem}.kpm.sig" \
+                "$TMPDIR/${_kpm_stem}.sig" \
+                "$TMPDIR/$(basename "$KPM_BASENAME" .kpm).kpm.sig" \
+                "$TMPDIR/$(basename "$KPM_BASENAME" .kpm).sig"; do
+        if [ -f "$_sig" ]; then
+            cp "$_sig" "$KPM_DIR/${MOD_ID}.kpm.sig"
+            log "Signature copied: $KPM_DIR/${MOD_ID}.kpm.sig"
+            break
+        fi
+    done
 elif [ -n "$SRC_FILES" ]; then
     # Source module: needs compilation
     COMPILE_SCRIPT="$MODDIR/compile_kpm.sh"
@@ -126,6 +144,12 @@ elif [ -n "$SRC_FILES" ]; then
         log "Source module stored (no compiler available): $KPNDIR/kpm_src/${MOD_ID}/"
         echo "- Source stored, compilation requires TCC compiler"
     fi
+    # NOTE: source-compiled modules are inherently unsigned in this MVP.
+    # TODO(security): when REQUIRE_KPM_SIGNATURES=1 is enforced strictly
+    # and a user installs a source module that gets compiled locally, the
+    # resulting $KPM_DIR/${MOD_ID}.kpm will be rejected at next boot
+    # unless a signing step is added to compile_kpm.sh. For now, this is
+    # fine because service.sh allows unsigned modules with a warning.
 else
     echo "! No .kpm/.ko/.o or .c files found in ZIP"
     exit 1

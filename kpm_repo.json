@@ -10,7 +10,8 @@
       "description": "SELinux access filter for Magisk context",
       "downloadUrl": "https://example.com/selinux_hook_1.1.0.zip",
       "minKpVersion": "0.13.2",
-      "size": 65648
+      "size": 65648,
+      "signatureRequired": true
     },
     {
       "id": "devsafe",
@@ -20,7 +21,8 @@
       "description": "Development safety module for Android 15 (kernel 6.6)",
       "downloadUrl": "https://example.com/DevSafe_v3.0.zip",
       "minKpVersion": "0.13.2",
-      "size": 209288
+      "size": 209288,
+      "signatureRequired": true
     }
   ]
 }
