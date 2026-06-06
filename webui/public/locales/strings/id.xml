@@ -196,4 +196,5 @@
     <string name="button_save_config">Simpan konfigurasi</string>
     <string name="button_open_in_ksu">Buka di Manajer KSU</string>
     <string name="msg_module_disabled">Modul dinonaktifkan di manajer</string>
+    <string name="msg_no_config">Belum ada entri konfigurasi — ketik "key=value" di bawah dan ketuk Simpan</string>
 </resources>

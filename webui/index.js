@@ -1,6 +1,7 @@
 import '@material/web/all.js';
 import { applyStoredTheme } from './theme.js';
 import { detectEnvironment, resetEnvironment } from './ksu.js';
+import { openModuleConfigDialog } from './module-config.js';
 
 // Apply theme as early as possible — before any UI renders — so the user
 // doesn't see a flash of the wrong color.
@@ -125,6 +126,8 @@ async function reboot(reason = "") {
 function initKsuIntegration() {
     const item = document.getElementById('open-in-ksu');
     const detail = document.getElementById('open-in-ksu-detail');
+    const configItem = document.getElementById('module-config');
+    const configDetail = document.getElementById('module-config-detail');
     if (!item) return;
 
     (async () => {
@@ -133,6 +136,7 @@ function initKsuIntegration() {
         // (not Magisk, not unknown).
         if (!env.hasKsu || !env.managerPackage) {
             item.classList.add('hidden');
+            if (configItem) configItem.classList.add('hidden');
             return;
         }
         item.classList.remove('hidden');
@@ -156,6 +160,19 @@ function initKsuIntegration() {
                 }
             });
         };
+
+        // Module config (KSU v2+ only). The button is only meaningful
+        // when the manager supports persistent per-module config.
+        if (configItem) {
+            if (env.ksuVersion) {
+                const v = env.ksuVersion.match(/(\d+)\.(\d+)/);
+                if (v && parseInt(v[1]) >= 2) {
+                    configItem.classList.remove('hidden');
+                    if (configDetail) configDetail.textContent = getString('title_module_config');
+                    configItem.onclick = () => openModuleConfigDialog();
+                }
+            }
+        }
     })();
 }
 

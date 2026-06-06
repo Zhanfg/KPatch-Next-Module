@@ -196,4 +196,5 @@
     <string name="button_save_config">保存配置</string>
     <string name="button_open_in_ksu">在 KSU 管理器中打开</string>
     <string name="msg_module_disabled">模块在管理器中已禁用</string>
+    <string name="msg_no_config">暂无配置项 — 在下方输入「key=value」并点击保存</string>
 </resources>

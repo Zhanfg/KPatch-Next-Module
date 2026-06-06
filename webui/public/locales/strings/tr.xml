@@ -196,4 +196,5 @@
     <string name="button_save_config">Yapılandırmayı kaydet</string>
     <string name="button_open_in_ksu">KSU Yöneticisinde aç</string>
     <string name="msg_module_disabled">Yöneticide modül devre dışı</string>
+    <string name="msg_no_config">Yapılandırma girişi yok — aşağıya "key=value" yazıp Kaydet'e dokunun</string>
 </resources>

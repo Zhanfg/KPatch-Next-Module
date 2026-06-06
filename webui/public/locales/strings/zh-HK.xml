@@ -196,4 +196,5 @@
     <string name="button_save_config">儲存配置</string>
     <string name="button_open_in_ksu">喺 KSU 管理員打開</string>
     <string name="msg_module_disabled">模組喺管理員已停用</string>
+    <string name="msg_no_config">暫時無設定項目 — 喺下面輸入「key=value」然後撳儲存</string>
 </resources>

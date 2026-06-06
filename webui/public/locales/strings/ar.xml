@@ -196,4 +196,5 @@
     <string name="button_save_config">حفظ التهيئة</string>
     <string name="button_open_in_ksu">افتح في مدير KSU</string>
     <string name="msg_module_disabled">الوحدة معطلة في المدير</string>
+    <string name="msg_no_config">لا توجد إدخالات تهيئة حتى الآن — اكتب "key=value" أدناه واضغط حفظ</string>
 </resources>

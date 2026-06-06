@@ -196,4 +196,5 @@
     <string name="button_save_config">Сохранить</string>
     <string name="button_open_in_ksu">Открыть в KSU Manager</string>
     <string name="msg_module_disabled">Модуль отключён в менеджере</string>
+    <string name="msg_no_config">Нет записей конфигурации — введите ниже «key=value» и нажмите Сохранить</string>
 </resources>

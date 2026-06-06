@@ -196,4 +196,5 @@
     <string name="button_save_config">Konfig speichern</string>
     <string name="button_open_in_ksu">Im KSU-Manager öffnen</string>
     <string name="msg_module_disabled">Modul ist im Manager deaktiviert</string>
+    <string name="msg_no_config">Keine Konfig-Einträge — geben Sie unten "key=value" ein und tippen Sie auf Speichern</string>
 </resources>

@@ -196,4 +196,5 @@
     <string name="button_save_config">Salva config</string>
     <string name="button_open_in_ksu">Apri in KSU Manager</string>
     <string name="msg_module_disabled">Modulo disabilitato nel gestore</string>
+    <string name="msg_no_config">Nessuna voce di configurazione — digita "key=value" qui sotto e tocca Salva</string>
 </resources>
