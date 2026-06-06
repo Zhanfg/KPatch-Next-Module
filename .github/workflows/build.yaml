@@ -170,6 +170,8 @@ jobs:
         mv module/bin/kptools-android module/bin/kptools
 
     - name: Download kpatch tool
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         TAG="${{ env['kpatch-next'] }}"
         ARGS=("-R" "KernelSU-Next/KPatch-Next" "-p" "kpatch-android" "-D" "module/bin")
@@ -328,6 +330,8 @@ jobs:
 
     # === kpatch user-space tool (only from KPatch-Next) ===
     - name: Download kpatch tool
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         TAG="${{ env['kpatch-next'] }}"
         ARGS=("-R" "KernelSU-Next/KPatch-Next" "-p" "kpatch-android" "-D" "module/bin")
@@ -364,6 +368,8 @@ jobs:
 
     # === Magiskboot ===
     - name: Download magiskboot
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -euo pipefail
         TAG="${{ env.magiskboot }}"
