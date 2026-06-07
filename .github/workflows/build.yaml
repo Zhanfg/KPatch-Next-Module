@@ -548,33 +548,23 @@ jobs:
     - name: Package release artifact
       run: |
         set -euo pipefail
-        # The downloaded artifact contents are flat files in the
-        # MODULE_NAME directory (e.g. service.sh, module.prop, bin/,
-        # webroot/, ...). Magisk and KernelSU both expect these files
-        # to live inside a `module/` subdirectory of the zip — the
-        # root manager extracts the zip and looks for `module/module.prop`
-        # (and the WebUI loader looks for `module/webroot/`).
+        # The downloaded artifact is a flat directory of module files
+        # (service.sh, module.prop, bin/, webroot/, patch/, ...). The
+        # root manager unzips the release into a directory of its
+        # choosing and renames it to `module/`. So the zip's
+        # internal layout should be the module root contents
+        # directly — i.e. module.prop, bin/, webroot/, etc. sit at
+        # the zip root.
         #
-        # The original build.sh used `cd module && zip -r ... .` so
-        # the zip itself was just the inner contents; the manager
-        # then unzipped into a directory of its choosing and renamed
-        # it to `module/`. We're reproducing that contract here by
-        # creating a sub-directory `module/` and zipping the
-        # contents of THAT (so the zip's internal layout matches).
-        #
-        # The release job's $MODULE_NAME directory is a workdir; we
-        # create a `module/` subdir inside it, hardlink the actual
-        # module files into it, then zip.
+        # The 'find -maxdepth 1' approach is the original build.sh's
+        # contract (cd module && zip -r ... .). We do it with a
+        # one-liner here.
         cd "$MODULE_NAME"
-        mkdir -p module
-        # Hardlink each top-level file/dir into module/. Using
-        # `find` keeps the trailing directory structure intact
-        # (bin/, webroot/, patch/, etc.).
-        find . -maxdepth 1 -mindepth 1 -not -name 'module' -exec cp -al {} module/ \;
-        cd module
-        # Sanity: confirm module.prop is in the right place.
-        test -f module.prop || { echo '::error::module.prop missing after copy'; exit 1; }
-        zip -r "../${MODULE_NAME}.zip" .
+        test -f module.prop || { echo "::error::module.prop missing"; exit 1; }
+        # zip everything under the current dir, but EXCLUDE the
+        # MODULE_NAME dir itself (which would otherwise be a
+        # self-referential zip). We use zip's built-in -x flag.
+        zip -r "../${MODULE_NAME}.zip" . -x "${MODULE_NAME}/*"
     - name: Generate changelog
       run: |
         CHANGELOG_RAW=$(git diff HEAD~1 HEAD -- "CHANGELOG.md" 2>/dev/null | grep '^+[^+]' | sed 's/^+//' || echo 'No changelog')
