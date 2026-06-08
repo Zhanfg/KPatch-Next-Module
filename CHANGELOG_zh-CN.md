@@ -6,6 +6,18 @@
 
 ### v0.4.1-rc2
 
+#### 🐛 Boot 镜像检测（真机反馈 2026-06-08）
+- **`module/patch/util_functions.sh::find_boot_image()`** 在备选分区名
+  列表中新增 `boot_b` 和 `kern_a`。在 A/B 设备跑在 slot B 且 `$SLOT`
+  为空时（cmdline 被剥离或 getprop 失败），原列表会漏掉当前 boot
+  分区，WebUI 显示 `错误：找不到 Boot 镜像`。OnePlus PJZ110 / Android 16
+  实机确认。
+- **`module/module.prop::version`** 去掉 `v` 前缀（`v0.4.1-rc1` →
+  `0.4.1-rc2`）。KernelSU 中文版模块列表解析器不识别带 `v` 前缀的
+  version 字段为合法 SemVer，会回退为 "Unknown"（版本和作者同时为
+  Unknown）。
+- **module.prop `versionCode`** 从 25 升至 26。
+
 #### 🔀 品牌重塑: KPatch-Next → PatchNest
 - **项目重命名**: 从 "KPatch-Next" 更名为 "PatchNest"，涉及 68 个文件：
   shell 脚本、CI 工作流、WebUI（JS/HTML/CSS）、15 个 locale XML、

@@ -288,7 +288,14 @@ find_boot_image() {
     BOOTIMAGE=$(find_block "boot$SLOT")
   fi
   if [ -z $BOOTIMAGE ]; then
-    BOOTIMAGE=$(find_block kern-a android_boot kernel bootimg boot lnx boot_a)
+    # P0 fix: previous list omitted `boot_b`. On A/B devices running
+    # slot B with an empty $SLOT (cmdline stripped or getprop failed)
+    # the search would miss the actual current boot partition and
+    # the user would see "can't find boot.img" even though the
+    # device is fully functional. Also add `kern_a` — MediaTek-based
+    # devices (Dimensity / Helio G-series) expose the kernel image
+    # partition under that name rather than `kern-a`.
+    BOOTIMAGE=$(find_block kern-a kern_a android_boot kernel bootimg boot lnx boot_a boot_b)
   fi
   if [ -z $BOOTIMAGE ]; then
     # Lets see what fstabs tells me

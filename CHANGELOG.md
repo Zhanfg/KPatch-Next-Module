@@ -6,6 +6,18 @@
 
 ### v0.4.1-rc2
 
+#### 🐛 Boot image detection (on-device report 2026-06-08)
+- **`module/patch/util_functions.sh::find_boot_image()`** added `boot_b`
+  and `kern_a` to the fallback partition-name list. A/B devices running
+  slot B with an empty `$SLOT` (cmdline stripped or getprop failed) would
+  miss the current boot partition and the WebUI would show
+  `错误：找不到 Boot 镜像`. Confirmed on OnePlus PJZ110 / Android 16.
+- **`module/module.prop::version`** stripped the `v` prefix
+  (`v0.4.1-rc1` → `0.4.1-rc2`). KernelSU's CN-locale module list
+  parser does not recognize `v`-prefixed versions as valid SemVer and
+  falls back to "Unknown" for both `version` and `author` fields.
+- **module.prop `versionCode`** bumped 25 → 26.
+
 #### 🔀 Rebrand: KPatch-Next → PatchNest
 - **Project renamed** from "KPatch-Next" to "PatchNest" across 68 files:
   shell scripts, CI workflows, WebUI (JS/HTML/CSS), 15 locale XMLs,

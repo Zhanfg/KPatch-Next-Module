@@ -1,7 +1,7 @@
 id=PatchNest
 name=PatchNest
-version=v0.4.1-rc1
-versionCode=25
+version=0.4.1-rc2
+versionCode=26
 author=PatchNest Maintainers
 description=PatchNest - KPM host and anti-detection suite for Magisk / KernelSU / APatch
 updateJson=https://raw.githubusercontent.com/Zhanfg/PatchNest-Module/main/update.json
